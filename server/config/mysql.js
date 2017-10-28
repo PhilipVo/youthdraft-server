@@ -10,8 +10,7 @@ const pool = mysql.createPool({
 	port: '8889', //3306,
 	user: 'root',
 	password: password,
-	database: 'gametime',
-	queryFormat: queryFormat,
+	database: 'youthdraft',
 	Promise: Promise
 });
 

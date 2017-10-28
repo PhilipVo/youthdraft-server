@@ -2,39 +2,59 @@ const getConnection = require("../config/mysql");
 const jwt = require("jsonwebtoken");
 const Promise = require("bluebird");
 const uuid = require('uuid/v1');
+const xlsxj = require("xlsx-to-json");
 
 
 module.exports = {
-  create: (req, res) => {
-    Promise.using(getConnection(), connection => {
-      const query = "INSERT INTO followings SET id = UNHEX(?), sport = ?, " +
-        "team = ?, createdAt = NOW(), updatedAt = NOW()";
-      return connection.execute(query, [req.user.id, req.body.sport, req.body.team]);
-    }).then(() => res.end())
-      .catch(error => res.status(400).json({ message: "Please contact an admin." }));
-  },
-  delete: (req, res) => {
-    Promise.using(getConnection(), connection => {
-      const query = "DELETE FROM followings WHERE id = UNHEX(?) AND sport = ? AND team = ? LIMIT 1";
-      return connection.execute(query, [req.user.id, req.params.sport, req.params.team]);
-    }).then(() => res.end())
-      .catch(error => res.status(400).json({ message: error }));
-  },
-  getFollowedTeams: (req, res) => {
-    Promise.using(getConnection(), connection => {
-      const query = "SELECT team, sport FROM followings WHERE id = UNHEX(?) ORDER BY sport, team";
-      return connection.execute(query, [req.user.id]);
-    }).spread(data => res.status(200).json(data))
-      .catch(error => res.status(400).json({ message: "Please contact an admin." }));
-  },
-  getFollowedTeamsForSport: (req, res) => {
-    Promise.using(getConnection(), connection => {
-      const query = "SELECT team FROM followings WHERE id = UNHEX(?) AND sport = ? ORDER BY team";
-      return connection.execute(query, [req.user.id, req.params.sport]);
-    }).spread(data => res.status(200).json(data))
-      .catch(error => res.status(400).json({ message: "Please contact an admin." }));
-  },
+  uploadCoaches: (req, res) => {
+    xlsxj({
+      input:  __dirname + "sample.xlsx",
+      output:  __dirname + "output.json"
+    }, function(err, result) {
+      if(err) {
+        return res.status(400).json(err);
+      }else {
+        return res.status(200).json(result);
+      }
+    });
+	},
+  uploadPlayers: (req, res) => {
 
+	},
+  login: (req, res) => {
+		// Validate login data:
+		if (!req.body.email || !req.body.password || !req.body.leagueName)
+			return res.status(400).json({ message: "All form fields are required." });
+
+		// Pre-validate password:
+		if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d$@$!%*?&](?=.{7,})/.test(req.body.password))
+			return res.status(400).json({ message: "Email/password/league name does not match." });
+
+		Promise.using(getConnection(), connection => {
+			// Get user by email:
+			const query = "SELECT HEX(id) AS id, email, password, loginAt FROM users WHERE email = ? AND leagueName = ? LIMIT 1";
+			return connection.execute(query, [req.body.email, req.body.leagueName]);
+		}).spread(data => {
+			if (data.length == 0)
+				throw { status: 400, message: "Email/password/league name does not match." };
+
+			// Check valid password:
+			return [bcrypt.compareAsync(req.body.password, data[0].password), data];
+		}).spread((isMatch, data) => {
+			if (!isMatch)
+				throw { status: 400, message: "Email/password/league name does not match." };
+
+			const gametimeToken = jwt.sign({
+				iat: Math.floor(Date.now() / 1000) - 30,
+				id: data[0].id
+			}, jwtKey);
+			return res.status(200).json(gametimeToken);
+		}).catch(error => {
+			if (error.status)
+				return res.status(error.status).json({ message: error.message });
+			return res.status(400).json({ message: "Please contact an admin." });
+		});
+	},
   register: (req, res) => {
 		// Expecting body.email & body.password.
 		if (
@@ -69,9 +89,9 @@ module.exports = {
 		bcrypt.genSaltAsync(10)
 			.then(salt => bcrypt.hashAsync(req.body.password, salt))
 			.then(hash => Promise.using(getConnection(), connection => {
-				const data = [id, req.body.email, hash];
-				const query = "INSERT INTO users SET id = UNHEX(?), email = ?, password = ?, " +
-					"deviceToken = NULL, createdAt = NOW(), updatedAt = NOW(), loginAt = ?";
+				const data = [id, req.body.email, hash, req.body.firstName, req.body.lastName, req.body.leagueName, req.body.phoneNumber, req.body.city, req.body.state];
+				const query = "INSERT INTO users SET id = UNHEX(?), email = ?, password = ?, firstName = ? " +
+					"lastName = ?, leagueName = ?, phoneNumber = ?, city = ?, state = ?, createdAt = NOW(), updatedAt = NOW()";
 				return connection.execute(query, data);
 			})).spread(data => {
 				const youthDraftToken = jwt.sign({
