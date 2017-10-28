@@ -8,7 +8,10 @@ const xlsx2json = require('xlsx2json');
 
 module.exports = {
   uploadCoaches: (req, res) => {
-    xlsx2json('sample.xlsx', {
+    Promise.using(getConnection(), connection => {
+      const query = "SELECT HEX(id) AS id, email, password, loginAt FROM leagues WHERE id = ? LIMIT 1";
+			return connection.execute(query, [req.user.id]);
+    }).then(xlsx2json('sample.xlsx', {
       sheet: 0,
       dataStartingRow: 1,
       mapping: {
@@ -19,14 +22,23 @@ module.exports = {
         email: "E",
         phoneNumber: "F"
       }
-    }).then(jsonArray => {
-      return res.status(200).json(jsonArray);
+    })).then(jsonArray => {
+      Promise.using(getConnection(), connection => {
+        if (data.length > 0)
+          return connection.query("INSERT INTO games (away, home, network, sport, gametime) VALUES ?", [jsonArray]);
+        else return Promise.resolve();
+      }).catch(error => {
+        return res.status(400).json(error);
+      });
     }).catch(error => {
       return res.status(400).json(error);
     });
 	},
   uploadPlayers: (req, res) => {
-    xlsx2json('sample.xlsx', {
+    Promise.using(getConnection(), connection => {
+      const query = "SELECT HEX(id) AS id, email, password, loginAt FROM leagues WHERE id = ? LIMIT 1";
+			return connection.execute(query, [req.user.id]);
+    }).then(xlsx2json('sample.xlsx', {
       sheet: 0,
       dataStartingRow: 1,
       mapping: {
@@ -36,13 +48,20 @@ module.exports = {
         gender: "D",
         division: "E"
       }
-    }).then(jsonArray => {
-      return res.status(200).json(jsonArray);
+    })).then(jsonArray => {
+      Promise.using(getConnection(), connection => {
+        if (data.length > 0)
+          return connection.query("INSERT INTO games (away, home, network, sport, gametime) VALUES ?", [jsonArray]);
+        else return Promise.resolve();
+      }).catch(error => {
+        return res.status(400).json(error);
+      });
     }).catch(error => {
       return res.status(400).json(error);
     });
 	},
   createTryouts: (req, res) => {
+    req.user.id
 
 	},
   createLeague: (req, res) => {
