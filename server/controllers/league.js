@@ -3,22 +3,73 @@ const jwt = require("jsonwebtoken");
 const Promise = require("bluebird");
 const uuid = require('uuid/v1');
 const xlsxj = require("xlsx-to-json");
+const xlsx2json = require('xlsx2json');
 
 
 module.exports = {
   uploadCoaches: (req, res) => {
-    xlsxj({
-      input:  __dirname + "sample.xlsx",
-      output:  __dirname + "output.json"
-    }, function(err, result) {
-      if(err) {
-        return res.status(400).json(err);
-      }else {
-        return res.status(200).json(result);
+    xlsx2json('sample.xlsx', {
+      sheet: 0,
+      dataStartingRow: 1,
+      mapping: {
+        firstName: "A",
+        lastName: "B",
+        divsion: "C",
+        team: "D",
+        email: "E",
+        phoneNumber: "F"
       }
+    }).then(jsonArray => {
+      return res.status(200).json(jsonArray);
+    }).catch(error => {
+      return res.status(400).json(error);
     });
 	},
   uploadPlayers: (req, res) => {
+    xlsx2json('sample.xlsx', {
+      sheet: 0,
+      dataStartingRow: 1,
+      mapping: {
+        firstName: "A",
+        lastName: "B",
+        age: "C",
+        gender: "D",
+        division: "E"
+      }
+    }).then(jsonArray => {
+      return res.status(200).json(jsonArray);
+    }).catch(error => {
+      return res.status(400).json(error);
+    });
+	},
+  createTryouts: (req, res) => {
+
+	},
+  createLeague: (req, res) => {
+
+	},
+  getCoaches: (req, res) => {
+
+	},
+  getPlayers: (req, res) => {
+
+	},
+  getTryouts: (req, res) => {
+
+	},
+  updateCoaches: (req, res) => {
+
+	},
+  updatePlayers: (req, res) => {
+
+	},
+  updateTryouts: (req, res) => {
+
+	},
+  updateAccount: (req, res) => {
+
+	},
+  updatePassword: (req, res) => {
 
 	},
   login: (req, res) => {
@@ -32,7 +83,7 @@ module.exports = {
 
 		Promise.using(getConnection(), connection => {
 			// Get user by email:
-			const query = "SELECT HEX(id) AS id, email, password, loginAt FROM users WHERE email = ? AND leagueName = ? LIMIT 1";
+			const query = "SELECT HEX(id) AS id, email, password, loginAt FROM leagues WHERE email = ? AND leagueName = ? LIMIT 1";
 			return connection.execute(query, [req.body.email, req.body.leagueName]);
 		}).spread(data => {
 			if (data.length == 0)
@@ -90,7 +141,7 @@ module.exports = {
 			.then(salt => bcrypt.hashAsync(req.body.password, salt))
 			.then(hash => Promise.using(getConnection(), connection => {
 				const data = [id, req.body.email, hash, req.body.firstName, req.body.lastName, req.body.leagueName, req.body.phoneNumber, req.body.city, req.body.state];
-				const query = "INSERT INTO users SET id = UNHEX(?), email = ?, password = ?, firstName = ? " +
+				const query = "INSERT INTO leagues SET id = UNHEX(?), email = ?, password = ?, firstName = ? " +
 					"lastName = ?, leagueName = ?, phoneNumber = ?, city = ?, state = ?, createdAt = NOW(), updatedAt = NOW()";
 				return connection.execute(query, data);
 			})).spread(data => {
