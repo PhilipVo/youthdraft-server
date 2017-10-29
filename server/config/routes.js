@@ -7,8 +7,12 @@ module.exports = function (app) {
 	// League routes
 	app.post('/users/register', users.register);
 	app.post('/users/login', users.login);
-	app.post('/upload-coaches', users.uploadCoaches);
-	app.post('/upload-players', users.uploadPlayers);
+	// For bulk
+	app.post('/api/upload-coaches', users.uploadCoaches);
+	app.post('/api/upload-players', users.uploadPlayers);
+	// For single
+	app.get('/api/coaches', users.getCoaches);
+	app.get('/api/players', users.getPlayers);
 
 	// app.get('/api/users', users.show);
 	// // app.put('/api/users/password', users.password);

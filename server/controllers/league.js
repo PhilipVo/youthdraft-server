@@ -1,33 +1,41 @@
-const getConnection = require("../config/mysql");
 const jwt = require("jsonwebtoken");
 const Promise = require("bluebird");
+const bcrypt = Promise.promisifyAll(require("bcrypt"));
 const uuid = require('uuid/v1');
-const xlsxj = require("xlsx-to-json");
-const xlsx2json = require('xlsx2json');
+const xlsxConverter = require('../services/xlsxConverter');
+
+const jwtKey = require("../../keys/keys").jwtKey;
+const getConnection = require("../config/mysql");
 
 
 module.exports = {
   uploadCoaches: (req, res) => {
-    Promise.using(getConnection(), connection => {
-      const query = "SELECT HEX(id) AS id, email, password, loginAt FROM leagues WHERE id = ? LIMIT 1";
-			return connection.execute(query, [req.user.id]);
-    }).then(xlsx2json('sample.xlsx', {
-      sheet: 0,
-      dataStartingRow: 1,
-      mapping: {
-        firstName: "A",
-        lastName: "B",
-        divsion: "C",
-        team: "D",
-        email: "E",
-        phoneNumber: "F"
+    xlsxConverter('sample.xlsx').then(jsonArray => {
+      const tempLength = jsonArray.length;
+      for (var i = 0; i < tempLength; i++) {
+        if (jsonArray[i].length < 5) {
+          return res.status(400).json({message: "Please check your spreadsheet, you are missing a column."});
+        }
+        if (jsonArray[i].length > 5) {
+          jsonArray[i].splice(5)
+        }
+        jsonArray[i].push("UNHEX(REPLACE(UUID(), '-', ''))");
+        // jsonArray[i].push("UNHEX(" + req.user.id + ")");
+        jsonArray[i].push(new Buffer(req.user.id, "hex"));
+        jsonArray[i].push("NOW()");
+        jsonArray[i].push("NOW()");
       }
-    })).then(jsonArray => {
+      console.log(jsonArray);
       Promise.using(getConnection(), connection => {
-        if (data.length > 0)
-          return connection.query("INSERT INTO games (away, home, network, sport, gametime) VALUES ?", [jsonArray]);
+        if (jsonArray.length > 0) {
+          const query = "INSERT INTO coaches (firstName, lastName, division, email, phoneNumber, " +
+            "id, leagueId, createdAt, updatedAt) VALUES ?"
+          return connection.query(query, [jsonArray]);
+        }
         else return Promise.resolve();
-      }).catch(error => {
+      }).then(() => {
+        return res.status(200).json({message: "works"})
+			}).catch(error => {
         return res.status(400).json(error);
       });
     }).catch(error => {
@@ -35,32 +43,39 @@ module.exports = {
     });
 	},
   uploadPlayers: (req, res) => {
-    Promise.using(getConnection(), connection => {
-      const query = "SELECT HEX(id) AS id, email, password, loginAt FROM leagues WHERE id = ? LIMIT 1";
-			return connection.execute(query, [req.user.id]);
-    }).then(xlsx2json('sample.xlsx', {
-      sheet: 0,
-      dataStartingRow: 1,
-      mapping: {
-        firstName: "A",
-        lastName: "B",
-        age: "C",
-        gender: "D",
-        division: "E"
+    xlsxConverter('sample.xlsx').then(jsonArray => {
+      const tempLength = jsonArray.length;
+      for (var i = 0; i < tempLength; i++) {
+        if (jsonArray[i].length < 5) {
+          return res.status(400).json({message: "Please check your spreadsheet, you are missing a column."});
+        }
+        if (jsonArray[i].length > 5) {
+          jsonArray[i].splice(5)
+        }
+        jsonArray[i].push("UNHEX(REPLACE(UUID(), '-', ''))");
+        // jsonArray[i].push("UNHEX(" + req.user.id + ")");
+        jsonArray[i].push(new Buffer(req.user.id, "hex"));
+        jsonArray[i].push("NOW()");
+        jsonArray[i].push("NOW()");
       }
-    })).then(jsonArray => {
+      console.log(jsonArray);
       Promise.using(getConnection(), connection => {
-        if (data.length > 0)
-          return connection.query("INSERT INTO games (away, home, network, sport, gametime) VALUES ?", [jsonArray]);
+        if (jsonArray.length > 0) {
+          const query = "INSERT INTO coaches (firstName, lastName, division, email, phoneNumber, " +
+            "id, leagueId, createdAt, updatedAt) VALUES ?"
+          return connection.query(query, [jsonArray]);
+        }
         else return Promise.resolve();
-      }).catch(error => {
+      }).then(() => {
+        return res.status(200).json({message: "works"})
+			}).catch(error => {
         return res.status(400).json(error);
       });
     }).catch(error => {
       return res.status(400).json(error);
     });
 	},
-  createTryouts: (req, res) => {
+  tryouts: (req, res) => {
     req.user.id
 
 	},
@@ -68,21 +83,29 @@ module.exports = {
 
 	},
   getCoaches: (req, res) => {
-
+    Promise.using(getConnection(), connection => {
+      const query = "SELECT HEX(id) as id, firstName, lastName, email, division, phoneNumber, createdAt, " +
+        "updatedAt, HEX(leagueId) as leagueId FROM coaches WHERE leagueId = UNHEX(?)";
+      return connection.execute(query, [req.user.id]);
+    }).spread(data => res.status(200).json(data))
+      .catch(error => res.status(400).json({ message: "Please contact an admin." }));
 	},
   getPlayers: (req, res) => {
 
 	},
-  getTryouts: (req, res) => {
+  createTryouts: (req, res) => {
+
+	},
+  createCoaches: (req, res) => {
+
+	},
+  getPlayers: (req, res) => {
 
 	},
   updateCoaches: (req, res) => {
 
 	},
   updatePlayers: (req, res) => {
-
-	},
-  updateTryouts: (req, res) => {
 
 	},
   updateAccount: (req, res) => {
@@ -102,7 +125,7 @@ module.exports = {
 
 		Promise.using(getConnection(), connection => {
 			// Get user by email:
-			const query = "SELECT HEX(id) AS id, email, password, loginAt FROM leagues WHERE email = ? AND leagueName = ? LIMIT 1";
+			const query = "SELECT HEX(id) AS id, email, password FROM leagues WHERE email = ? AND leagueName = ? LIMIT 1";
 			return connection.execute(query, [req.body.email, req.body.leagueName]);
 		}).spread(data => {
 			if (data.length == 0)
@@ -122,7 +145,7 @@ module.exports = {
 		}).catch(error => {
 			if (error.status)
 				return res.status(error.status).json({ message: error.message });
-			return res.status(400).json({ message: "Please contact an admin." });
+			return res.status(400).json({ message: "Please contact an admin.", error: error});
 		});
 	},
   register: (req, res) => {
@@ -153,14 +176,13 @@ module.exports = {
 				message: "Password must be at least 8 characters long and " +
 				"have a lowercase letter, an uppercase letter, and a number."
 			});
-
 		const id = uuid().replace(/\-/g, "");
 
 		bcrypt.genSaltAsync(10)
 			.then(salt => bcrypt.hashAsync(req.body.password, salt))
 			.then(hash => Promise.using(getConnection(), connection => {
 				const data = [id, req.body.email, hash, req.body.firstName, req.body.lastName, req.body.leagueName, req.body.phoneNumber, req.body.city, req.body.state];
-				const query = "INSERT INTO leagues SET id = UNHEX(?), email = ?, password = ?, firstName = ? " +
+				const query = "INSERT INTO leagues SET id = UNHEX(?), email = ?, password = ?, firstName = ?, " +
 					"lastName = ?, leagueName = ?, phoneNumber = ?, city = ?, state = ?, createdAt = NOW(), updatedAt = NOW()";
 				return connection.execute(query, data);
 			})).spread(data => {
