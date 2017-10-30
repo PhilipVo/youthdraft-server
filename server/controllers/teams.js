@@ -6,7 +6,7 @@ const getConnection = require("../config/mysql");
 
 
 module.exports = {
-  uploadCoaches: (req, res) => {
+  uploadTeams: (req, res) => {
     xlsxConverter('sample.xlsx').then(jsonArray => {
       const tempLength = jsonArray.length;
       for (var i = 0; i < tempLength; i++) {
@@ -38,7 +38,7 @@ module.exports = {
       return res.status(400).json(error);
     });
 	},
-  getCoaches: (req, res) => {
+  getTeams: (req, res) => {
     Promise.using(getConnection(), connection => {
       const query = "SELECT HEX(id) as id, firstName, lastName, email, division, phoneNumber, createdAt, " +
         "updatedAt, HEX(leagueId) as leagueId FROM coaches WHERE leagueId = UNHEX(?)";
@@ -46,7 +46,7 @@ module.exports = {
     }).spread(data => res.status(200).json(data))
       .catch(error => res.status(400).json({ message: "Please contact an admin." }));
 	},
-  coaches: (req, res) => {
+  teams: (req, res) => {
     let query2, data2
     // Expecting all form data.
 		if (
@@ -60,7 +60,7 @@ module.exports = {
 			return res.status(400).json({ message: "All form fields are required." });
 
     // Validate email:
-		if (!/[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/.test(req.body.email))
+		// if (!/[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/.test(req.body.email))
 			return res.status(400).json({ message: "Invalid email. Email format should be: email@mailserver.com." });
 
     //Setup the first query
@@ -110,15 +110,7 @@ module.exports = {
         return res.status(400).json({ message: "Please contact an admin." });
       });
 	},
-  validateCoaches: (req, res) => {
-    Promise.using(getConnection(), connection => {
-      const query = "UPDATE coaches SET isValidated = 1 , updatedAt = NOW() WHERE id = UNHEX(?) " +
-      "AND leagueId = UNHEX(?) LIMIT 1";
-      return connection.execute(query, [req.body.id, req.user.id]);
-    }).spread(data => res.status(200).json())
-      .catch(error => res.status(400).json({ message: "Please contact an admin." }));
-  },
-  deleteCoaches: (req, res) => {
+  deleteTeams: (req, res) => {
     Promise.using(getConnection(), connection => {
       const query = "DELETE FROM coaches WHERE id = UNHEX(?) AND leagueId = UNHEX(?)";
       return connection.execute(query, [req.params.id, req.user.id]);

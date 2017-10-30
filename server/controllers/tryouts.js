@@ -5,7 +5,7 @@ const getConnection = require("../config/mysql");
 
 
 module.exports = {
-  tryouts: (req, res) => {
+  modifyTryouts: (req, res) => {
     let tempTryouts = []
     if (req.body.dates.length > 5)
       return res.status(400).json({ message: "Only up to 5 tryout dates are allowed." });

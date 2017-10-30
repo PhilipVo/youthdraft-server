@@ -62,7 +62,7 @@ module.exports = {
 			return res.status(400).json({ message: "All form fields are required." });
 
     // Validate email:
-		// if (!/[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/.test(req.body.email))
+		if (!/[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/.test(req.body.email))
 			return res.status(400).json({ message: "Invalid email. Email format should be: email@mailserver.com." });
 
     // Check if it's updating or if it's creating by seeing if there is an id
@@ -106,17 +106,7 @@ module.exports = {
         return res.status(400).json({ message: "Please contact an admin." });
       });
 	},
-  validatePlayers: (req, res) => {
-    Promise.using(getConnection(), connection => {
-      const query = "UPDATE players SET isValidated = 1 , updatedAt = NOW() WHERE id = UNHEX(?) AND leagueId = UNHEX(?) LIMIT 1";
-      return connection.execute(query, [req.body.id, req.user.id]);
-    }).spread(data => res.status(200).json())
-      .catch(error => res.status(400).json({ message: "Please contact an admin." }));
-  },
   deletePlayers: (req, res) => {
-    // Just incase the id is not sent over for whatever reason
-    if (!req.params.id)
-      return res.status(400).json({ message: "Was unable to delete the player, please try again." });
     Promise.using(getConnection(), connection => {
       const query = "DELETE FROM players WHERE id = UNHEX(?) AND leagueId = UNHEX(?)";
       return connection.execute(query, [req.params.id, req.user.id]);

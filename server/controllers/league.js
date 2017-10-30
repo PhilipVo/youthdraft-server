@@ -37,7 +37,7 @@ module.exports = {
 			return res.status(400).json({ message: "All form fields are required." });
 
     // Validate email:
-		// if (!/[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/.test(req.body.email))
+		if (!/[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/.test(req.body.email))
 			return res.status(400).json({ message: "Invalid email. Email format should be: email@mailserver.com." });
 
     Promise.using(getConnection(), connection => {
@@ -46,7 +46,7 @@ module.exports = {
       return connection.execute(query, [req.body.email]);
     }).spread(user => {
       if (user.length === 1 && user[0].email !== req.user.email)
-        throw { status: 400, message: 'Email already in use.' }
+        throw { status: 400, message: 'Email already associated with this league.' }
 
       const query = "UPDATE leagues SET email = ?, firstName = ?, lastName = ?, leagueName = ?, " +
         "phoneNumber = ?, city = ?, state = ?, updatedAt = NOW() WHERE id = UNHEX(?) LIMIT 1";
@@ -173,7 +173,7 @@ module.exports = {
 				return res.status(200).json(youthDraftToken);
 			}).catch(error => {
 				if (error["code"] == "ER_DUP_ENTRY")
-					return res.status(400).json({ message: "Email already in use." });
+					return res.status(400).json({ message: "Email already associated with this league." });
 				return res.status(400).json({ message: "Please contact an admin." });
 			});
 	}
