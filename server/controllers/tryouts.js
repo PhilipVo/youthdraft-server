@@ -5,7 +5,7 @@ const getConnection = require("../config/mysql");
 
 
 module.exports = {
-  modifyTryouts: (req, res) => {
+  modify: (req, res) => {
     let tempTryouts = []
     if (req.body.dates.length > 5)
       return res.status(400).json({ message: "Only up to 5 tryout dates are allowed." });
@@ -38,7 +38,7 @@ module.exports = {
         return res.status(400).json({ message: "Please contact an admin." });
       });
 	},
-  getTryouts: (req, res) => {
+  getAll: (req, res) => {
     Promise.using(getConnection(), connection => {
       const query = "SELECT date, address, createdAt, updatedAt FROM tryouts WHERE leagueId = UNHEX(?)";
       return connection.execute(query, [req.user.id]);

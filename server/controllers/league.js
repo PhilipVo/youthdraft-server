@@ -2,20 +2,21 @@ const jwt = require("jsonwebtoken");
 const Promise = require("bluebird");
 const bcrypt = Promise.promisifyAll(require("bcrypt"));
 const uuid = require('uuid/v1');
+const generator = require('generate-password');
 
 const jwtKey = require("../../keys/keys").jwtKey;
 const getConnection = require("../config/mysql");
 
 
 module.exports = {
-  createLeague: (req, res) => {
+  create: (req, res) => {
     Promise.using(getConnection(), connection => {
       const query = "UPDATE leagues SET isLive = 1 , updatedAt = NOW() WHERE id = UNHEX(?) LIMIT 1";
       return connection.execute(query, [req.user.id]);
     }).spread(data => res.status(200).json(data))
       .catch(error => res.status(400).json({ message: "Please contact an admin." }));
 	},
-  getAccount: (req, res) => {
+  get: (req, res) => {
     Promise.using(getConnection(), connection => {
       const query = "SELECT email, firstName, lastName, leagueName, " +
         "phoneNumber, city, state FROM leagues WHERE id = UNHEX(?) LIMIT 1";
@@ -23,7 +24,14 @@ module.exports = {
     }).spread(data => res.status(200).json(data))
       .catch(error => res.status(400).json({ message: "Please contact an admin." }));
   },
-  updateAccount: (req, res) => {
+  getAll: (req, res) => {
+    Promise.using(getConnection(), connection => {
+      const query = "SELECT leagueName, city, state FROM leagues";
+      return connection.execute(query, [req.user.id]);
+    }).spread(data => res.status(200).json(data))
+      .catch(error => res.status(400).json({ message: "Please contact an admin." }));
+  },
+  update: (req, res) => {
     // Expecting all form data.
 		if (
 			!req.body.email ||
@@ -59,7 +67,7 @@ module.exports = {
         return res.status(400).json({ message: "Please contact an admin." });
       });
 	},
-  updatePassword: (req, res) => {
+  password: (req, res) => {
     // Pre-validate old password:
 		if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d$@$!%*?&](?=.{7,})/.test(req.body.oldPassword))
 			return res.status(400).json({ message: "Current password is incorrect." });
@@ -168,6 +176,7 @@ module.exports = {
 			})).spread(data => {
 				const youthDraftToken = jwt.sign({
 					id: id,
+          user: 'league',
 					iat: Math.floor(Date.now() / 1000) - 30
 				}, jwtKey);
 				return res.status(200).json(youthDraftToken);

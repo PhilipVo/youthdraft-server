@@ -1,12 +1,12 @@
 const Promise = require("bluebird");
 const uuid = require('uuid/v1');
-const xlsxConverter = require('../services/xlsxConverter');
+const xlsxConverter = require('../services/xlsx-converter');
 
 const getConnection = require("../config/mysql");
 
 
 module.exports = {
-  uploadPlayers: (req, res) => {
+  upload: (req, res) => {
     xlsxConverter('sample.xlsx').then(jsonArray => {
       const tempLength = jsonArray.length;
       for (var i = 0; i < tempLength; i++) {
@@ -24,8 +24,8 @@ module.exports = {
       }
       Promise.using(getConnection(), connection => {
         if (jsonArray.length > 0) {
-          const query = "INSERT INTO players (firstName, lastName, birthday, leagueAge, phoneNumber, email, " +
-            "parentFirstName, parentLastName, id, leagueId, createdAt, updatedAt) VALUES ?"
+          const query = "INSERT INTO players (firstName, lastName, teamNumber, birthday, leagueAge, phoneNumber, email, " +
+            "division, parentFirstName, parentLastName, id, leagueId, createdAt, updatedAt) VALUES ?"
           return connection.query(query, [jsonArray]);
         }
         else return Promise.resolve();
@@ -38,9 +38,18 @@ module.exports = {
       return res.status(400).json(error);
     });
 	},
-  getPlayers: (req, res) => {
+  getDivision: (req, res) => {
     Promise.using(getConnection(), connection => {
-      const query = "SELECT HEX(id) as id, firstName, lastName, birthday, leagueAge, phoneNumber, email, " +
+      const query = "SELECT HEX(id) as id, firstName, lastName, teamNumber, birthday, leagueAge, phoneNumber, email, division, " +
+        "parentFirstName, parentLastName, createdAt, updatedAt, HEX(leagueId) as leagueId FROM players WHERE " +
+        "leagueId = UNHEX(?) AND division = ?";
+      return connection.execute(query, [req.user.id, req.params.division]);
+    }).spread(data => res.status(200).json(data))
+      .catch(error => res.status(400).json({ message: "Please contact an admin." }));
+	},
+  getAll: (req, res) => {
+    Promise.using(getConnection(), connection => {
+      const query = "SELECT HEX(id) as id, firstName, lastName, teamNumber, birthday, leagueAge, phoneNumber, email, division, " +
         "parentFirstName, parentLastName, createdAt, updatedAt, HEX(leagueId) as leagueId FROM players WHERE leagueId = UNHEX(?)";
       return connection.execute(query, [req.user.id]);
     }).spread(data => res.status(200).json(data))
@@ -52,10 +61,12 @@ module.exports = {
 		if (
 			!req.body.firstName ||
 			!req.body.lastName ||
+      !req.body.teamNumber ||
       !req.body.birthday ||
       !req.body.leagueAge ||
 			!req.body.phoneNumber ||
       !req.body.email ||
+      !req.body.division ||
       !req.body.parentFirstName ||
       !req.body.parentLastName
 		)
@@ -67,33 +78,38 @@ module.exports = {
 
     // Check if it's updating or if it's creating by seeing if there is an id
     if (req.params.id) {
-      query = "UPDATE players SET firstName = ?, lastName = ?, birthday = ?, leagueAge = ?, phoneNumber = ?, " +
-        "email = ?, parentFirstName = ?, parentLastName = ?, updatedAt = NOW() WHERE id = UNHEX(?) " +
-        "and leagueId = UNHEX(?) LIMIT 1";
+      query = "UPDATE players SET firstName = ?, lastName = ?, teamNumber = ?, birthday = ?, leagueAge = ?, " +
+        "phoneNumber = ?, email = ?, division = ?, parentFirstName = ?, parentLastName = ?, updatedAt = NOW() " +
+        "WHERE id = UNHEX(?) and leagueId = UNHEX(?) LIMIT 1";
       data = [
         req.body.firstName,
         req.body.lastName,
+        req.body.teamNumber,
         req.body.birthday,
         req.body.leagueAge,
         req.body.phoneNumber,
         req.body.email,
+        req.body.division,
         req.body.parentFirstName,
         req.body.parentLastName,
-        req.body.id,
-        req.params.id
+        req.params.id,
+        req.user.id
       ];
     } else {
-      query = "INSERT INTO players SET id = ?, leagueId = UNHEX(?), firstName = ?, lastName = ?, birthday = ?, leagueAge = ?, " +
-        "phoneNumber = ?, email = ?, parentFirstName = ?, parentLastName = ?, updatedAt = NOW(), createdAt = NOW()";
+      query = "INSERT INTO players SET id = UNHEX(?), leagueId = UNHEX(?), firstName = ?, lastName = ?, teamNumber = ?, " +
+        "birthday = ?, leagueAge = ?, phoneNumber = ?, email = ?, division = ?, parentFirstName = ?, parentLastName = ?, " +
+        "updatedAt = NOW(), createdAt = NOW()";
       data = [
         uuid().replace(/\-/g, ""),
         req.user.id,
         req.body.firstName,
         req.body.lastName,
+        req.body.teamNumber,
         req.body.birthday,
         req.body.leagueAge,
         req.body.phoneNumber,
         req.body.email,
+        req.body.division,
         req.body.parentFirstName,
         req.body.parentLastName
       ];
@@ -106,7 +122,7 @@ module.exports = {
         return res.status(400).json({ message: "Please contact an admin." });
       });
 	},
-  deletePlayers: (req, res) => {
+  delete: (req, res) => {
     Promise.using(getConnection(), connection => {
       const query = "DELETE FROM players WHERE id = UNHEX(?) AND leagueId = UNHEX(?)";
       return connection.execute(query, [req.params.id, req.user.id]);

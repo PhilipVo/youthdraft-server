@@ -1,12 +1,12 @@
 const Promise = require("bluebird");
 const uuid = require('uuid/v1');
-const xlsxConverter = require('../services/xlsxConverter');
+const xlsxConverter = require('../services/xlsx-converter');
 
 const getConnection = require("../config/mysql");
 
 
 module.exports = {
-  uploadTeams: (req, res) => {
+  upload: (req, res) => {
     xlsxConverter('sample.xlsx').then(jsonArray => {
       const tempLength = jsonArray.length;
       for (var i = 0; i < tempLength; i++) {
@@ -38,7 +38,7 @@ module.exports = {
       return res.status(400).json(error);
     });
 	},
-  getTeams: (req, res) => {
+  get: (req, res) => {
     Promise.using(getConnection(), connection => {
       const query = "SELECT HEX(id) as id, firstName, lastName, email, division, phoneNumber, createdAt, " +
         "updatedAt, HEX(leagueId) as leagueId FROM coaches WHERE leagueId = UNHEX(?)";
@@ -82,7 +82,7 @@ module.exports = {
         req.params.id
       ];
     } else {
-      query2 = "INSERT INTO coaches SET id = ?, email = ?, firstName = ?, lastName = ?, phoneNumber = ?, " +
+      query2 = "INSERT INTO coaches SET id = UNHEX(?), email = ?, firstName = ?, lastName = ?, phoneNumber = ?, " +
         "city = ?, state = ?, updatedAt = NOW(), createdAt = NOW()";
       data2 = [
         uuid().replace(/\-/g, ""),
@@ -110,7 +110,7 @@ module.exports = {
         return res.status(400).json({ message: "Please contact an admin." });
       });
 	},
-  deleteTeams: (req, res) => {
+  delete: (req, res) => {
     Promise.using(getConnection(), connection => {
       const query = "DELETE FROM coaches WHERE id = UNHEX(?) AND leagueId = UNHEX(?)";
       return connection.execute(query, [req.params.id, req.user.id]);

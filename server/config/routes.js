@@ -1,6 +1,6 @@
 const 	league 					= require('../controllers/league.js'),
-				leagueCoaches 	= require('../controllers/leagueCoaches.js'),
-				leaguePlayers 	= require('../controllers/leaguePlayers.js'),
+				coaches 				= require('../controllers/coaches.js'),
+				players 				= require('../controllers/players.js'),
 				tryouts				 	= require('../controllers/tryouts.js'),
 				teams					 	= require('../controllers/teams.js');
 
@@ -10,58 +10,84 @@ const 	league 					= require('../controllers/league.js'),
 module.exports = function (app) {
 
 	////////////////////////////////////////////////////////////
-	//											League routes  										//
+	//                     League routes                      //
 	////////////////////////////////////////////////////////////
 
-	app.post('/league/register', league.register);
-	app.post('/league/login', league.login);
-	app.post('/api/league/create', league.createLeague);
-	app.get('/api/league/account', league.getAccount);
-	app.put('/api/league/account', league.getAccount);
-	app.put('/api/league/account/password', league.getAccount);
+	app.post('/leagues/register', league.register);
+	app.post('/leagues/login', league.login);
+	app.post('/api/leagues/create', league.create);
+	app.get('/api/leagues', league.get);
+	app.get('/leagues', league.getAll);
+	app.put('/api/leagues', league.update);
+	app.put('/api/leagues/password', league.password);
 
 	////////////////////////////////////////////////////////////
-	//											Tryout routes  										//
+	//                     Tryout routes                      //
 	////////////////////////////////////////////////////////////
 
-	app.get('/api/league/tryouts', tryouts.modifyTryouts);
-	app.post('/api/league/tryouts', tryouts.getTryouts);
+	app.get('/api/tryouts', tryouts.getAll);
+	app.post('/api/tryouts', tryouts.modify);
 
 	////////////////////////////////////////////////////////////
-	//										 	 Team routes  				 						//
-	////////////////////////////////////////////////////////////
-
-	// For bulk
-	app.post('/api/league/upload-teams', teams.uploadTeams);
-	// For single
-	app.post('/api/league/teams/:id', teams.teams);
-	app.post('/api/league/teams', teams.teams);
-	app.get('/api/league/teams', teams.getTeams);
-	app.delete('/api/league/teams/:id', teams.deleteTeams);
-
-	////////////////////////////////////////////////////////////
-	//									League Coaches routes  								//
+	//                       Team routes                      //
 	////////////////////////////////////////////////////////////
 
 	// For bulk
-	app.post('/api/league/upload-coaches', leagueCoaches.uploadCoaches);
+	app.post('/api/teams/upload', teams.upload);
 	// For single
-	app.post('/api/league/coaches/:id', leagueCoaches.coaches);
-	app.post('/api/league/coaches', leagueCoaches.coaches);
-	app.get('/api/league/coaches', leagueCoaches.getCoaches);
-	app.delete('/api/league/coaches/:id', leagueCoaches.deleteCoaches);
-	app.post('/api/league/validate', leagueCoaches.validateCoaches);
+	app.post('/api/teams/:id', teams.teams);
+	app.post('/api/teams', teams.teams);
+	app.get('/api/teams', teams.getAll);
+	app.delete('/api/teams/:id', teams.delete);
 
 	////////////////////////////////////////////////////////////
-	//									League Players routes  								//
+	//                     Coaches routes                     //
 	////////////////////////////////////////////////////////////
 
 	// For bulk
-	app.post('/api/league/upload-players', leaguePlayers.uploadPlayers);
+	app.post('/api/coaches/upload', coaches.upload);
 	// For single
-	app.post('/api/league/players/:id', leaguePlayers.players);
-	app.post('/api/league/players', leaguePlayers.players);
-	app.get('/api/league/players', leaguePlayers.getPlayers);
-	app.delete('/api/league/players/:id', leaguePlayers.deletePlayers);
+	app.put('/api/coaches/:id', coaches.coaches);
+	app.put('/api/coaches/:league/:id', coaches.coaches);
+	app.post('/api/coaches', coaches.coaches);
+	app.post('/api/coaches/register', coaches.register);
+	app.post('/api/coaches/password', coaches.password);
+	app.get('/api/coaches/all', coaches.getAll);
+	app.get('/api/coaches', coaches.get);
+	app.delete('/api/coaches/:id', coaches.delete);
+	app.post('/api/coaches/validate', coaches.validate);
+
+	////////////////////////////////////////////////////////////
+	//                     Players routes                     //
+	////////////////////////////////////////////////////////////
+
+	// For bulk
+	app.post('/api/players/upload', players.upload);
+	// For single
+	app.post('/api/players/:id', players.players);
+	app.post('/api/players', players.players);
+	app.get('/api/players', players.getAll);
+	app.get('/api/players/get-players-for-division/:division', players.getDivision);
+	app.delete('/api/players/:id', players.delete);
+
+	////////////////////////////////////////////////////////////
+	//                     Formulas routes                    //
+	////////////////////////////////////////////////////////////
+
+	app.post('/api/formulas/:id', formulas.formulas);
+	app.post('/api/formulas', formulas.formulas);
+	app.get('/api/formulas', formulas.getAll);
+	app.delete('/api/formulas/:id', formulas.delete);
+
+
+	////////////////////////////////////////////////////////////
+	//                      Stats routes                      //
+	////////////////////////////////////////////////////////////
+
+	app.post('/api/stats/:id', stats.stats);
+	app.post('/api/stats', stats.stats);
+	app.get('/api/stats', stats.getAll);
+	app.get('/api/stats/:playerId', stats.get);
+	app.delete('/api/stats/:id', stats.delete);
 
 }
