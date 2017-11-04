@@ -1,0 +1,195 @@
+All routes will return a 400 code upon error and possibly a JSON Object with {message: "message"}
+
+Also all routes will return a 200 code upon success.
+
+////////////////////////////////////////////////////////////
+//                  League Admin routes                   //
+////////////////////////////////////////////////////////////
+
+app.post('/league/register', league.register);
+	Expects:
+		{
+			"email": "moo@moo.com",
+			"password": "Password1", // 8 characters, uppercase and numbers
+			"firstName": "Bob",
+			"lastName": "Ross",
+			"leagueName": "Rivercats",
+			"phoneNumber": "123-456-7890",
+			"city": "Mehicos",
+			"state": "CA"
+		}
+	returns:
+		"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImIyMTgwNjkwYzEyMTExZTdiMWU1OTNmMDM0ZWIxMTBhIiwidXNlciI6ImxlYWd1ZSIsImlhdCI6MTUwOTc3MzU4Mn0.7PkyiA8Uhz94ZV5amAuRdQYmlGvG7n6khQiydBPwvTU"
+
+app.get('/leagues', league.getAll);
+	// to get all the leagues for selecting from the drop down
+	returns:
+  [
+	  {
+	      "id": "B2180690C12111E7B1E593F034EB110A",
+	      "leagueName": "Rivercats",
+	      "city": "Mehicos",
+	      "state": "CA"
+	  },
+	  {
+	      "id": "FA260020C12311E782D21BC0EFEB7703",
+	      "leagueName": "Giants",
+	      "city": "Mehi",
+	      "state": "CA"
+	  }
+	]
+
+app.post('/league/login', league.login);
+	expects:
+		{
+			"email": "moo@moo.com",
+			"password": "Password1",
+			"leagueId": "B2180690C12111E7B1E593F034EB110A" // use the id from the /leagues
+		}
+	returns:
+		"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE1MDk3NzQ5NDIsImlkIjoiQjIxODA2OTBDMTIxMTFFN0IxRTU5M0YwMzRFQjExMEEifQ.Q7VAHt44BMy2NY9sihd-kHNzxDcsk2hAz6AkqLMkaLM"
+
+app.post('/api/league/create', league.createLeague);
+	// tells the server that the league has been finished creating and is now being used
+	expects: JWT of a league admin in the HTML header
+	returns: 200 code.
+
+app.get('/api/league', league.get);
+	// to get all the info connected to the league account
+	expects: JWT of a league admin in the HTML header
+	returns:
+		{
+	    "email": "moo@moo.com",
+	    "firstName": "Bob",
+	    "lastName": "Ross",
+	    "leagueName": "Rivercats",
+	    "phoneNumber": "123-456-7890",
+	    "city": "Mehicos",
+	    "state": "CA"
+		}
+
+app.put('/api/league', league.update);
+	// update the league admin profile
+	expects: JWT of a league admin in the HTML header and
+		{
+			"email": "moo@moo.com",
+			"firstName": "Bob",
+			"lastName": "Ross",
+			"leagueName": "Giants",
+			"phoneNumber": "123-456-7890",
+			"city": "Mehi",
+			"state": "CA"
+		}
+	returns: 200 code.
+
+app.put('/api/league/password', league.password);
+	// update the league admin password
+	expects:
+	{
+		"oldPassword": "Password2", // should not match
+		"newPassword": "Password1"
+	}
+
+////////////////////////////////////////////////////////////
+//                     Tryout routes                      //
+////////////////////////////////////////////////////////////
+
+app.get('/api/tryouts', tryouts.getAll);
+	//get all the try outs for the league
+	expects: Either JWT of a coach or league admin
+	returns:
+		[
+			{
+					"date": "2017-12-05T08:00:00.000Z",
+					"address": "2215 Mine Street, Mine CA 95835",
+					"createdAt": "2017-11-04T07:37:25.000Z",
+					"updatedAt": "2017-11-04T07:37:25.000Z"
+			},
+			{
+					"date": "2017-12-08T08:00:00.000Z",
+					"address": "2215 Mine Street, Mine CA 95835",
+					"createdAt": "2017-11-04T07:37:25.000Z",
+					"updatedAt": "2017-11-04T07:37:25.000Z"
+			}
+		]
+
+app.post('/api/tryouts', tryouts.modify);
+	//Modify all the try outs for the league
+	expects: Either JWT of league admin and
+		{
+			"tryouts": [ // up to five
+				{
+					"date": "2017-12-5", // YYYY-MM-DD
+					"address": "2215 Mine Street, Mine CA 95835" // String
+				},
+				{
+					"date": "2017-12-8",
+					"address": "2215 Mine Street, Mine CA 95835"
+				}
+			]
+		}
+	returns: 200 code
+
+////////////////////////////////////////////////////////////
+//                       Team routes                      //
+////////////////////////////////////////////////////////////
+
+// For bulk
+app.post('/api/teams/upload', teams.upload);
+// For single
+app.post('/api/teams/:id', teams.teams);
+app.post('/api/teams', teams.teams);
+app.get('/api/teams', teams.getAll);
+app.delete('/api/teams/:id', teams.delete);
+
+////////////////////////////////////////////////////////////
+//                     Coaches routes                     //
+////////////////////////////////////////////////////////////
+
+// For bulk
+app.post('/api/coaches/upload', coaches.upload);
+	// still working on whether or not do this front end...
+
+// For single
+app.post('/api/coaches/register', coaches.register);
+app.get('/api/coaches/all', coaches.getAll);
+app.post('/api/coaches/validate', coaches.validate);
+app.post('/api/coaches/register', coaches.login);
+app.put('/api/coaches/:id', coaches.coaches);
+app.post('/api/coaches', coaches.coaches);
+app.post('/api/coaches/password', coaches.password);
+app.get('/api/coaches', coaches.get);
+app.delete('/api/coaches/:id', coaches.delete);
+
+////////////////////////////////////////////////////////////
+//                     Players routes                     //
+////////////////////////////////////////////////////////////
+
+// For bulk
+app.post('/api/players/upload', players.upload);
+// For single
+app.post('/api/players/:id', players.players);
+app.post('/api/players', players.players);
+app.get('/api/players', players.getAll);
+app.get('/api/players/get-players-for-division/:division', players.getDivision);
+app.delete('/api/players/:id', players.delete);
+
+////////////////////////////////////////////////////////////
+//                     Formulas routes                    //
+////////////////////////////////////////////////////////////
+
+app.post('/api/formulas/:id', formulas.formulas);
+app.post('/api/formulas', formulas.formulas);
+app.get('/api/formulas', formulas.getAll);
+app.delete('/api/formulas/:id', formulas.delete);
+
+
+////////////////////////////////////////////////////////////
+//                      Stats routes                      //
+////////////////////////////////////////////////////////////
+
+app.post('/api/stats/:id', stats.stats);
+app.post('/api/stats', stats.stats);
+app.get('/api/stats', stats.getAll);
+app.get('/api/stats/:playerId', stats.get);
+app.delete('/api/stats/:id', stats.delete);

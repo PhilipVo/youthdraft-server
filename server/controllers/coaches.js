@@ -34,6 +34,8 @@ module.exports = {
       }).then(() => {
         return res.status(200).json({message: "works"})
 			}).catch(error => {
+        if (error.code == "ER_DUP_ENTRY")
+          return res.status(400).json({message: "Error: One of the emails were duplicated"});
         return res.status(400).json(error);
       });
     }).catch(error => {
@@ -142,11 +144,11 @@ module.exports = {
     }
     Promise.using(getConnection(), connection => connection.execute(query, data))
     .then(() => res.end())
-      .catch(error => {
-        if (error.status)
-          return res.status(error.status).json({ message: error.message });
-        return res.status(400).json({ message: "Please contact an admin." });
-      });
+    .catch(error => {
+      if (error.status)
+        return res.status(error.status).json({ message: error.message });
+      return res.status(400).json({ message: "Please contact an admin." });
+    });
 	},
   register: (req, res) => {
     // Expecting all form data.
@@ -219,8 +221,8 @@ module.exports = {
 
 		Promise.using(getConnection(), connection => {
 			// Get user by email:
-			const query = "SELECT HEX(id) AS id, email, password, validated FROM leagues WHERE email = ? AND leagueName = ? LIMIT 1";
-			return connection.execute(query, [req.body.email, req.body.leagueName]);
+			const query = "SELECT HEX(id) AS id, email, password, validated FROM leagues WHERE email = ? AND leagueId = (?) LIMIT 1";
+			return connection.execute(query, [req.body.email, req.body.leagueId]);
 		}).spread(data => {
 			if (data.length == 0)
 				throw { status: 400, message: "Email/password/league name does not match." };
@@ -234,7 +236,7 @@ module.exports = {
 			const gametimeToken = jwt.sign({
 				iat: Math.floor(Date.now() / 1000) - 30,
 				id: data[0].id,
-        leagueId: data[0].leagueId,
+        leagueId: req.body.leagueId,
 			}, jwtKey);
 			return res.status(200).json(gametimeToken);
 		}).catch(error => {

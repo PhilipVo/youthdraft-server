@@ -15,19 +15,19 @@ module.exports = function (app) {
 	//                  League Admin routes                   //
 	////////////////////////////////////////////////////////////
 
-	app.post('/leagues/register', league.register); // returns JWT for the league admin
-	app.post('/leagues/login', league.login); // returns JWT for the league admin
-	app.post('/api/leagues/create', league.create); // tells the server that the league has been finished creating and is now being used
-	app.get('/api/leagues', league.get); // to get all the info connected to the league account
+	app.post('/league/register', league.register); // returns JWT for the league admin
 	app.get('/leagues', league.getAll); // to get all the leagues for selecting from the drop down, contains, league name, city, state, and league id
-	app.put('/api/leagues', league.update); // update the league admin profile
-	app.put('/api/leagues/password', league.password); // update the league admin password
+	app.post('/league/login', league.login); // returns JWT for the league admin
+	app.post('/api/league/create', league.create); // tells the server that the league has been finished creating and is now being used
+	app.get('/api/league', league.get); // to get all the info connected to the league account
+	app.put('/api/league', league.update); // update the league admin profile
+	app.put('/api/league/password', league.password); // update the league admin password
 
 	////////////////////////////////////////////////////////////
 	//                     Tryout routes                      //
 	////////////////////////////////////////////////////////////
 
-	app.get('/api/tryouts', tryouts.getAll); //
+	app.get('/api/tryouts', tryouts.getAll); //get all try outs for the league
 	app.post('/api/tryouts', tryouts.modify);
 
 	////////////////////////////////////////////////////////////
@@ -49,14 +49,15 @@ module.exports = function (app) {
 	// For bulk
 	app.post('/api/coaches/upload', coaches.upload);
 	// For single
+	app.post('/api/coaches/register', coaches.register);
+	app.get('/api/coaches/all', coaches.getAll);
+	app.post('/api/coaches/validate', coaches.validate);
+	app.post('/api/coaches/register', coaches.login);
 	app.put('/api/coaches/:id', coaches.coaches);
 	app.post('/api/coaches', coaches.coaches);
-	app.post('/api/coaches/register', coaches.register);
 	app.post('/api/coaches/password', coaches.password);
-	app.get('/api/coaches/all', coaches.getAll);
 	app.get('/api/coaches', coaches.get);
 	app.delete('/api/coaches/:id', coaches.delete);
-	app.post('/api/coaches/validate', coaches.validate);
 
 	////////////////////////////////////////////////////////////
 	//                     Players routes                     //
