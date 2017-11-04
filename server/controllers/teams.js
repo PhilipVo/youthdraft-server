@@ -38,7 +38,7 @@ module.exports = {
       return res.status(400).json(error);
     });
 	},
-  get: (req, res) => {
+  getAll: (req, res) => {
     Promise.using(getConnection(), connection => {
       const query = "SELECT HEX(id) as id, firstName, lastName, email, division, phoneNumber, createdAt, " +
         "updatedAt, HEX(leagueId) as leagueId FROM coaches WHERE leagueId = UNHEX(?)";

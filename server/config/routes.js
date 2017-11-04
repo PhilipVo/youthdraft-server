@@ -2,7 +2,9 @@ const 	league 					= require('../controllers/league.js'),
 				coaches 				= require('../controllers/coaches.js'),
 				players 				= require('../controllers/players.js'),
 				tryouts				 	= require('../controllers/tryouts.js'),
-				teams					 	= require('../controllers/teams.js');
+				teams					 	= require('../controllers/teams.js'),
+				formulas			 	= require('../controllers/formulas.js'),
+				stats					 	= require('../controllers/stats.js');
 
 
 
@@ -10,22 +12,22 @@ const 	league 					= require('../controllers/league.js'),
 module.exports = function (app) {
 
 	////////////////////////////////////////////////////////////
-	//                     League routes                      //
+	//                  League Admin routes                   //
 	////////////////////////////////////////////////////////////
 
-	app.post('/leagues/register', league.register);
-	app.post('/leagues/login', league.login);
-	app.post('/api/leagues/create', league.create);
-	app.get('/api/leagues', league.get);
-	app.get('/leagues', league.getAll);
-	app.put('/api/leagues', league.update);
-	app.put('/api/leagues/password', league.password);
+	app.post('/leagues/register', league.register); // returns JWT for the league admin
+	app.post('/leagues/login', league.login); // returns JWT for the league admin
+	app.post('/api/leagues/create', league.create); // tells the server that the league has been finished creating and is now being used
+	app.get('/api/leagues', league.get); // to get all the info connected to the league account
+	app.get('/leagues', league.getAll); // to get all the leagues for selecting from the drop down, contains, league name, city, state, and league id
+	app.put('/api/leagues', league.update); // update the league admin profile
+	app.put('/api/leagues/password', league.password); // update the league admin password
 
 	////////////////////////////////////////////////////////////
 	//                     Tryout routes                      //
 	////////////////////////////////////////////////////////////
 
-	app.get('/api/tryouts', tryouts.getAll);
+	app.get('/api/tryouts', tryouts.getAll); //
 	app.post('/api/tryouts', tryouts.modify);
 
 	////////////////////////////////////////////////////////////
@@ -48,7 +50,6 @@ module.exports = function (app) {
 	app.post('/api/coaches/upload', coaches.upload);
 	// For single
 	app.put('/api/coaches/:id', coaches.coaches);
-	app.put('/api/coaches/:league/:id', coaches.coaches);
 	app.post('/api/coaches', coaches.coaches);
 	app.post('/api/coaches/register', coaches.register);
 	app.post('/api/coaches/password', coaches.password);
