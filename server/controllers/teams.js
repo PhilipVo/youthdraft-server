@@ -24,7 +24,7 @@ module.exports = {
       }
       Promise.using(getConnection(), connection => {
         if (jsonArray.length > 0) {
-          const query = "INSERT INTO coaches (firstName, lastName, division, email, phoneNumber, " +
+          const query = "INSERT INTO teams (firstName, lastName, division, email, phoneNumber, " +
             "id, leagueId, createdAt, updatedAt) VALUES ?"
           return connection.query(query, [jsonArray]);
         }
@@ -39,80 +39,55 @@ module.exports = {
     });
 	},
   getAll: (req, res) => {
+    let tempId = req.user.id
+    if (req.user.leagueId) {
+      tempId = req.user.leagueId
+    }
     Promise.using(getConnection(), connection => {
-      const query = "SELECT HEX(id) as id, firstName, lastName, email, division, phoneNumber, createdAt, " +
-        "updatedAt, HEX(leagueId) as leagueId FROM coaches WHERE leagueId = UNHEX(?)";
-      return connection.execute(query, [req.user.id]);
+      const query = "SELECT HEX(id) as id, name, division, createdAt, updatedAt FROM teams WHERE leagueId = UNHEX(?)";
+      return connection.execute(query, [tempId]);
     }).spread(data => res.status(200).json(data))
       .catch(error => res.status(400).json({ message: "Please contact an admin." }));
 	},
   teams: (req, res) => {
-    let query2, data2
+    let query, data
     // Expecting all form data.
 		if (
-			!req.body.email ||
-			!req.body.firstName ||
-			!req.body.lastName ||
-			!req.body.phoneNumber ||
-			!req.body.city ||
-      !req.body.state
+			!req.body.name ||
+			!req.body.division
 		)
 			return res.status(400).json({ message: "All form fields are required." });
 
-    // Validate email:
-		// if (!/[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/.test(req.body.email))
-			return res.status(400).json({ message: "Invalid email. Email format should be: email@mailserver.com." });
-
-    //Setup the first query
-    const query1 = "SELECT email FROM coaches WHERE email = ? AND leagueId = UNHEX(?) LIMIT 1";
-    const data1 = [req.body.email]
-
     // Check if it's updating or if it's creating by seeing if there is an id
     if (req.params.id) {
-      query2 = "UPDATE coaches SET email = ?, firstName = ?, lastName = ?, phoneNumber = ?, " +
-        "city = ?, state = ?, updatedAt = NOW() WHERE id = UNHEX(?) and leagueId = UNHEX(?) LIMIT 1";
-      data2 = [
-        req.body.email,
-        req.body.firstName,
-        req.body.lastName,
-        req.body.phoneNumber,
-        req.body.city,
-        req.body.state,
-        req.body.id,
-        req.params.id
-      ];
-    } else {
-      query2 = "INSERT INTO coaches SET id = UNHEX(?), email = ?, firstName = ?, lastName = ?, phoneNumber = ?, " +
-        "city = ?, state = ?, updatedAt = NOW(), createdAt = NOW()";
-      data2 = [
-        uuid().replace(/\-/g, ""),
-        req.body.email,
-        req.body.firstName,
-        req.body.lastName,
-        req.body.phoneNumber,
-        req.body.city,
-        req.body.state,
+      query = "UPDATE teams SET name = ?, division = ?, updatedAt = NOW() WHERE id = UNHEX(?) and leagueId = UNHEX(?) LIMIT 1";
+      data = [
+        req.body.name,
+        req.body.division,
+        req.params.id,
         req.user.id
       ];
+    } else {
+      query = "INSERT INTO teams SET id = UNHEX(?), leagueId = UNHEX(?), name = ?, division = ?, updatedAt = NOW(), createdAt = NOW()";
+      data = [
+        uuid().replace(/\-/g, ""),
+        req.user.id,
+        req.body.name,
+        req.body.division
+      ];
     }
-    Promise.using(getConnection(), connection => {
-      // Check if unique email entered:
-      return connection.execute(query1, data1);
-    }).spread(user => {
-      if (user.length === 1 && user[0].email !== req.body.email)
-        throw { status: 400, message: 'Email already associated with this league.' }
 
-      return Promise.using(getConnection(), connection => connection.execute(query2, data2));
-    }).then(() => res.end())
-      .catch(error => {
-        if (error.status)
-          return res.status(error.status).json({ message: error.message });
-        return res.status(400).json({ message: "Please contact an admin." });
-      });
+    Promise.using(getConnection(), connection => connection.execute(query, data))
+    .then(() => res.end())
+    .catch(error => {
+      if (error.status)
+        return res.status(error.status).json({ message: error.message });
+      return res.status(400).json({ message: "Please contact an admin." });
+    });
 	},
   delete: (req, res) => {
     Promise.using(getConnection(), connection => {
-      const query = "DELETE FROM coaches WHERE id = UNHEX(?) AND leagueId = UNHEX(?)";
+      const query = "DELETE FROM teams WHERE id = UNHEX(?) AND leagueId = UNHEX(?)";
       return connection.execute(query, [req.params.id, req.user.id]);
     }).spread(data => res.status(200).json())
       .catch(error => res.status(400).json({ message: "Please contact an admin." }));

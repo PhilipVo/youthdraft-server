@@ -100,7 +100,7 @@ app.get('/api/tryouts', tryouts.getAll);
 	returns:
 		[
 			{
-					"date": "2017-12-05T08:00:00.000Z",
+					"date": "2017-12-05T08:00:00.000Z", //UTC time need to convert it to local time
 					"address": "2215 Mine Street, Mine CA 95835",
 					"createdAt": "2017-11-04T07:37:25.000Z",
 					"updatedAt": "2017-11-04T07:37:25.000Z"
@@ -115,7 +115,7 @@ app.get('/api/tryouts', tryouts.getAll);
 
 app.post('/api/tryouts', tryouts.modify);
 	//Modify all the try outs for the league
-	expects: Either JWT of league admin and
+	expects: JWT of league admin
 		{
 			"tryouts": [ // up to five
 				{
@@ -136,11 +136,55 @@ app.post('/api/tryouts', tryouts.modify);
 
 // For bulk
 app.post('/api/teams/upload', teams.upload);
+	// still working on whether or not do this front end...
+
 // For single
-app.post('/api/teams/:id', teams.teams);
 app.post('/api/teams', teams.teams);
+	// create a new team for a leagueId
+	expects: JWT of league admin
+		{
+			"name": "Astros niners",
+			"division": "AAA"
+		}
+	returns: 200 code
+
+app.post('/api/teams/:id', teams.teams);
+	// updates a single team, the :id expects a id of a team
+	expects: JWT of league admin
+		{
+			"name": "Astros niners",
+			"division": "AAA"
+		}
+	returns: 200 code
+
 app.get('/api/teams', teams.getAll);
+	// grabs all teams of a league
+	expects: Either JWT of league admin or a coach
+	returns:
+		[
+			{
+					"id": "73DFFB60C1F011E7BC8C7F70B6BAE7A5",
+					"name": "Astros",
+					"division": "AAA",
+					"createdAt": "2017-11-05T06:13:33.000Z",
+					"updatedAt": "2017-11-05T06:13:33.000Z"
+			},
+			{
+					"id": "8167AF90C1EF11E79F3C4B7956E63DC1",
+					"name": "Astros niners",
+					"division": "AAA",
+					"createdAt": "2017-11-05T06:06:47.000Z",
+					"updatedAt": "2017-11-05T06:10:45.000Z"
+			}
+		]
 app.delete('/api/teams/:id', teams.delete);
+	// deletes a single team, the :id expects a id of a team
+	expects: JWT of league admin
+		{
+			"name": "Astros niners",
+			"division": "AAA"
+		}
+	returns: 200 code
 
 ////////////////////////////////////////////////////////////
 //                     Coaches routes                     //
@@ -152,6 +196,7 @@ app.post('/api/coaches/upload', coaches.upload);
 
 // For single
 app.post('/api/coaches/register', coaches.register);
+	//
 app.get('/api/coaches/all', coaches.getAll);
 app.post('/api/coaches/validate', coaches.validate);
 app.post('/api/coaches/register', coaches.login);
