@@ -18,6 +18,7 @@ module.exports = function (app) {
 	app.post('/league/register', league.register); // returns JWT for the league admin
 	app.get('/leagues', league.getAll); // to get all the leagues for selecting from the drop down, contains, league name, city, state, and league id
 	app.post('/league/login', league.login); // returns JWT for the league admin
+	app.post('/league/reset', league.reset); // reset the password for the league admin
 	app.post('/api/league/create', league.create); // tells the server that the league has been finished creating and is now being used
 	app.get('/api/league', league.get); // to get all the info connected to the league account
 	app.put('/api/league', league.update); // update the league admin profile
@@ -49,10 +50,11 @@ module.exports = function (app) {
 	// For bulk
 	app.post('/api/coaches/upload', coaches.upload);
 	// For single
-	app.post('/api/coaches/register', coaches.register);
+	app.post('/coaches/register', coaches.register);
 	app.get('/api/coaches/all', coaches.getAll);
 	app.post('/api/coaches/validate/:id', coaches.validate);
-	app.post('/api/coaches/login', coaches.login);
+	app.post('/coaches/reset', coaches.reset);
+	app.post('/coaches/login', coaches.login);
 	app.put('/api/coaches/:id', coaches.coaches);
 	app.post('/api/coaches', coaches.createCoaches);
 	app.post('/api/coaches/password', coaches.password);

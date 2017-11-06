@@ -39,6 +39,16 @@ app.get('/leagues', league.getAll);
 	  }
 	]
 
+app.post('/league/reset', coaches.reset);
+	// Resets a league admin's password and sends it out to the given email address
+	// Also takes a second or two to reply.  Emails seem to take a while.
+	expects:
+		{
+			"email": "mehs@mell.com",
+			"leagueId": "94753D90C12D11E79BB98B11A4F1E340"
+		}
+	returns: 200 code
+
 app.post('/league/login', league.login);
 	expects:
 		{
@@ -200,7 +210,7 @@ app.post('/api/coaches/upload', coaches.upload);
 	// still working on whether or not do this front end...
 
 // For single
-app.post('/api/coaches/register', coaches.register);
+app.post('/coaches/register', coaches.register);
 	// Accepts passwords for now, will change to emailed password upon league validation in the future
 	expects:
 		{
@@ -250,8 +260,19 @@ app.post('/api/coaches/validate/:id', coaches.validate);
 	expects: JWT of league admin
 	returns: 200 code or 400 code and {message: "This coach has already been validated."} if validated already
 
-app.post('/api/coaches/login', coaches.login);
-	// Can only login if validated
+app.post('/coaches/reset', coaches.reset);
+	// Resets a coach's password and sends it out to the given email address
+	// Works only if coach is validated
+	// Also takes a second or two to reply.  Emails seem to take a while.
+	expects:
+		{
+			"email": "mehs@mell.com",
+			"leagueId": "94753D90C12D11E79BB98B11A4F1E340"
+		}
+	returns: 200 code
+
+app.post('/coaches/login', coaches.login);
+	// Can only login if coach is validated
 	expects:
 		{
 			"email": "mehs@mell.com",
@@ -534,7 +555,7 @@ app.get('/api/formulas', formulas.getAll);
 		]
 
 app.delete('/api/formulas/:id', formulas.delete);
-	// allows a coach to edit a formula
+	// allows a coach to delete a formula
 	// :id expects the id of the formula that the coach wants to delete
 	expects: JWT of coach
 	returns: 200 code
@@ -549,15 +570,28 @@ app.post('/api/stats', stats.stats);
 	expects: any combination of the following form parameters and coach's JWT
 		{
 			"hittingMechanics": 3,
+			"hittingMechanicsNotes": "Very bad mechanics",
 			"batSpeed": 6,
+			"batSpeedNotes": "Good speed",
 			"batContact": 8,
+			"batContactNotes": "Very Good contact somehow",
 			"throwingMechanics": 3,
+			"throwingMechanicsNotes": "Bad mechanics",
 			"armStrength": 5,
+			"armStrengthNotes": "Decent arm strength",
 			"armAccuracy": 6,
+			"armAccuracyNotes": "Above average accuracy",
 			"inField": 8,
+			"inFieldNotes": "Good hussle",
 			"outField": 3,
+			"outFieldNotes": "But can't catch pop flys",
 			"baserunMechanics": 8,
-			"baserunSpeed": 3
+			"baserunMechanicsNotes": "Runs well",
+			"baserunSpeed": 3,
+			"baserunSpeedNotes": "Slow as heck",
+			"division" = "AAA",										 //not case sensitive
+			"playerId": "A464C7E0C2CA11E7B03EEDE8E1EB4852",
+			"teamId": "73DFFB60C1F011E7BC8C7F70B6BAE7A5"
 		}
 	returns: the id of the assessment that was just created.
 		"ac067890c2d411e7b609611dfbd33c48"
@@ -568,18 +602,94 @@ app.put('/api/stats/:id', stats.stats);
 	expects: any combination of the following form parameters and coach's JWT
 		{
 			"hittingMechanics": 3,
+			"hittingMechanicsNotes": "Very bad mechanics",
 			"batSpeed": 6,
+			"batSpeedNotes": "Good speed",
 			"batContact": 8,
+			"batContactNotes": "Very Good contact somehow",
 			"throwingMechanics": 3,
+			"throwingMechanicsNotes": "Bad mechanics",
 			"armStrength": 5,
+			"armStrengthNotes": "Decent arm strength",
 			"armAccuracy": 6,
+			"armAccuracyNotes": "Above average accuracy",
 			"inField": 8,
+			"inFieldNotes": "Good hussle",
 			"outField": 3,
+			"outFieldNotes": "But can't catch pop flys",
 			"baserunMechanics": 8,
-			"baserunSpeed": 3
+			"baserunMechanicsNotes": "Runs well",
+			"baserunSpeed": 3,
+			"baserunSpeedNotes": "Slow as heck",
+			"division" = "AAA" //not case sensitive
 		}
 	returns: 200 code
 
 app.get('/api/stats', stats.getAll);
+	// allows a coach to get all the stats of his division
+	expects: JWT of the coach
+	returns: an array of objects, still working on the sql to get it work correctly
+
 app.get('/api/stats/:playerId', stats.get);
+	// allows a coach to get all the stats he made of one of his players
+	// :id expects the id of the player that he/she wants to view
+	expects: any combination of the following form parameters and coach's JWT
+	returns:
+		[
+			{
+				"hittingMechanics": 3,
+				"hittingMechanicsNotes": "Very bad mechanics",
+				"batSpeed": 10,
+				"batSpeedNotes": "Good speed",
+				"batContact": null,
+				"batContactNotes": null,
+				"throwingMechanics": null,
+				"throwingMechanicsNotes": null,
+				"armStrength": null,
+				"armStrengthNotes": null,
+				"armAccuracy": null,
+				"armAccuracyNotes": null,
+				"inField": null,
+				"inFieldNotes": null,
+				"outField": null,
+				"outFieldNotes": null,
+				"baserunMechanics": null,
+				"baserunMechanicsNotes": null,
+				"baserunSpeed": null,
+				"baserunSpeedNotes": null,
+				"division": null,
+				"createdAt": "2017-11-06T10:20:15.000Z",
+				"updatedAt": "2017-11-06T10:26:13.000Z"
+			},
+			{
+				"hittingMechanics": 3,
+				"hittingMechanicsNotes": "Very bad mechanics",
+				"batSpeed": 6,
+				"batSpeedNotes": "Good speed",
+				"batContact": 8,
+				"batContactNotes": "Very Good contact somehow",
+				"throwingMechanics": 3,
+				"throwingMechanicsNotes": 0,
+				"armStrength": "5",
+				"armStrengthNotes": "Decent arm strength",
+				"armAccuracy": 6,
+				"armAccuracyNotes": "Above average accuracy",
+				"inField": 8,
+				"inFieldNotes": "Good hussle",
+				"outField": 3,
+				"outFieldNotes": "But can't catch pop flys",
+				"baserunMechanics": 8,
+				"baserunMechanicsNotes": "Runs well",
+				"baserunSpeed": 3,
+				"baserunSpeedNotes": "Slow as heck",
+				"division": null,
+				"createdAt": "2017-11-06T10:19:26.000Z",
+				"updatedAt": "2017-11-06T10:19:26.000Z"
+			}
+		]
+
 app.delete('/api/stats/:id', stats.delete);
+	// allows a coach to delete a player assessment
+	// :id expects the id of the formula that the coach wants to delete
+	expects: JWT of coach
+	returns: 200 code

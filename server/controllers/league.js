@@ -6,6 +6,7 @@ const generator = require('generate-password');
 
 const jwtKey = require("../../keys/keys").jwtKey;
 const getConnection = require("../config/mysql");
+const nodeMailer = require('../config/nodemailer');
 
 
 module.exports = {
@@ -110,6 +111,43 @@ module.exports = {
         return res.status(400).json({ message: "Please contact an admin." });
       });
 	},
+  reset: (req, res) => {
+    // Validate reset data:
+    if (!req.body.email || !req.body.leagueId)
+      return res.status(400).json({ message: "All form fields are required." });
+
+    // Validate email:
+    if (!/[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/.test(req.body.email))
+      return res.status(400).json({ message: "Invalid email. Email format should be: email@mailserver.com." });
+
+    const password = generator.generate({ length: 10, strict: true, numbers: true });
+
+    bcrypt.genSaltAsync(10)
+      .then(salt => bcrypt.hashAsync(password, salt))
+      .then(hash => Promise.using(getConnection(), connection => {
+        const query = "UPDATE leagues SET password = ?, updatedAt = NOW() WHERE email = ? " +
+        "AND id = UNHEX(?) LIMIT 1";
+        return connection.execute(query, [hash, req.body.email, req.body.leagueId]);
+      }))
+      .spread(data => Promise.using(getConnection(), connection => {
+        if (data.length == 0)
+          return res.status(200).json()
+        const query = "SELECT * FROM leagues WHERE email = ? AND id = UNHEX(?) LIMIT 1";
+        return connection.execute(query, [req.body.email, req.body.leagueId]);
+      }))
+      .spread(data => {
+        nodeMailer.mailOptions.to = req.body.email
+        nodeMailer.mailOptions.subject = "Your password has been reset"
+        nodeMailer.mailOptions.html = "<p>" + data[0].leagueName + " here is your new password: " + password + "</p>"
+        return nodeMailer.transporter.sendMail(nodeMailer.mailOptions)
+      })
+      .then(info => res.status(200).json())
+      .catch(error => {
+        if (error.status)
+          return res.status(error.status).json({ message: error.message });
+        return res.status(400).json({ message: "Please contact an admin.", error: error});
+      });
+  },
   login: (req, res) => {
 		// Validate login data:
 		if (!req.body.email || !req.body.password || !req.body.leagueId)

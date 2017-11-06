@@ -64,6 +64,43 @@ module.exports = {
     }).spread(data => res.status(200).json(data[0]))
       .catch(error => res.status(400).json({ message: "Please contact an admin." }));
 	},
+  reset: (req, res) => {
+    // Validate reset data:
+		if (!req.body.email || !req.body.leagueId)
+			return res.status(400).json({ message: "All form fields are required." });
+
+    // Validate email:
+    if (!/[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/.test(req.body.email))
+      return res.status(400).json({ message: "Invalid email. Email format should be: email@mailserver.com." });
+
+    const password = generator.generate({ length: 10, strict: true, numbers: true  });
+
+    bcrypt.genSaltAsync(10)
+			.then(salt => bcrypt.hashAsync(password, salt))
+			.then(hash => Promise.using(getConnection(), connection => {
+        const query = "UPDATE coaches SET password = ?, updatedAt = NOW() WHERE email = ? " +
+        "AND leagueId = UNHEX(?) AND validated = 1 LIMIT 1";
+        return connection.execute(query, [hash, req.body.email, req.body.leagueId]);
+      }))
+      .spread(data => Promise.using(getConnection(), connection => {
+        if (data.length == 0)
+          throw { status: 400, message: "Please wait for your account to be validated before trying to reset your password." };
+        const query = "SELECT * FROM coaches WHERE email = ? AND leagueId = UNHEX(?) LIMIT 1";
+        return connection.execute(query, [req.body.email, req.body.leagueId]);
+      }))
+      .spread(data => {
+        nodeMailer.mailOptions.to = req.body.email
+        nodeMailer.mailOptions.subject = "Your password has been reset"
+        nodeMailer.mailOptions.html = "<p>" + data[0].firstName + " " + data[0].lastName + " here is your new password: " + password + "</p>"
+        return nodeMailer.transporter.sendMail(nodeMailer.mailOptions)
+      })
+      .then(info => res.status(200).json())
+      .catch(error => {
+        if (error.status)
+          return res.status(error.status).json({ message: error.message });
+        return res.status(400).json({ message: "Please contact an admin."});
+      });
+  },
   login: (req, res) => {
 		// Validate login data:
 		if (!req.body.email || !req.body.password || !req.body.leagueName)
@@ -73,11 +110,18 @@ module.exports = {
 		if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d$@$!%*?&](?=.{7,})/.test(req.body.password))
 			return res.status(400).json({ message: "Email/password/league name does not match." });
 
+    // Validate email:
+		if (!/[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/.test(req.body.email))
+			return res.status(400).json({ message: "Invalid email. Email format should be: email@mailserver.com." });
+
 		Promise.using(getConnection(), connection => {
 			// Get user by email:
-			const query = "SELECT HEX(id) AS id, email, password FROM leagues WHERE email = ? AND leagueId = ? LIMIT 1";
+			const query = "SELECT HEX(id) AS id, email, password, validated FROM leagues WHERE email = ? AND leagueId = ? LIMIT 1";
 			return connection.execute(query, [req.body.email, req.body.leagueName]);
 		}).spread(data => {
+      if (validated == 0) {
+        throw { status: 400, message: "Please wait for your account to be validated before logging in again." };
+      }
 			if (data.length == 0)
 				throw { status: 400, message: "Email/password/league name does not match." };
 
@@ -159,7 +203,7 @@ module.exports = {
 		if (!/[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/.test(req.body.email))
 			return res.status(400).json({ message: "Invalid email. Email format should be: email@mailserver.com." });
 
-    const password = generator.generate({ length: 10, numbers: true });
+    const password = generator.generate({ length: 10, strict: true, numbers: true  });
     bcrypt.genSaltAsync(10)
 			.then(salt => bcrypt.hashAsync(password, salt))
 			.then(hash => Promise.using(getConnection(), connection => {
@@ -318,7 +362,7 @@ module.exports = {
       });
 	},
   validate: (req, res) => {
-    const password = generator.generate({ length: 10, numbers: true });
+    const password = generator.generate({ length: 10, strict: true, numbers: true  });
     bcrypt.genSaltAsync(10)
 			.then(salt => bcrypt.hashAsync(password, salt))
 			.then(hash => Promise.using(getConnection(), connection => {
@@ -355,7 +399,7 @@ module.exports = {
       .catch(error => res.status(400).json({ message: "Please contact an admin." }));
 	},
   test: (req, res) => {
-    const password = generator.generate({ length: 10, numbers: true });
+    const password = generator.generate({ length: 10, strict: true, numbers: true  });
     nodeMailer.mailOptions.to = "c4fusion@gmail.com"
     nodeMailer.mailOptions.subject = "Your account has been validated"
     nodeMailer.mailOptions.html = "<p>Here is your password: " + password + "</p>"
