@@ -18,46 +18,6 @@ USE `youthdraft`;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `coachFormulas`
---
-
-DROP TABLE IF EXISTS `coachFormulas`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `coachFormulas` (
-  `id` binary(16) NOT NULL,
-  `leagueId` binary(16) NOT NULL,
-  `coachId` binary(16) NOT NULL,
-  `hittingMechanics` tinyint(4) DEFAULT NULL,
-  `batSpeed` tinyint(4) DEFAULT NULL,
-  `batContact` tinyint(4) DEFAULT NULL,
-  `throwingMechanics` tinyint(4) DEFAULT NULL,
-  `armStrength` tinyint(4) DEFAULT NULL,
-  `armAccuracy` tinyint(4) DEFAULT NULL,
-  `infield` tinyint(4) DEFAULT NULL,
-  `outfield` tinyint(4) DEFAULT NULL,
-  `baserunMechanics` tinyint(4) DEFAULT NULL,
-  `baserunSpeed` tinyint(4) DEFAULT NULL,
-  `createdAt` datetime DEFAULT NULL,
-  `updatedAt` datetime DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `fk_coachFormulas_leagues1_idx` (`leagueId`),
-  KEY `fk_coachFormulas_coaches1_idx` (`coachId`),
-  CONSTRAINT `fk_coachFormulas_coaches1` FOREIGN KEY (`coachId`) REFERENCES `coaches` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  CONSTRAINT `fk_coachFormulas_leagues1` FOREIGN KEY (`leagueId`) REFERENCES `leagues` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `coachFormulas`
---
-
-LOCK TABLES `coachFormulas` WRITE;
-/*!40000 ALTER TABLE `coachFormulas` DISABLE KEYS */;
-/*!40000 ALTER TABLE `coachFormulas` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `coaches`
 --
 
@@ -70,15 +30,18 @@ CREATE TABLE `coaches` (
   `firstName` varchar(45) DEFAULT NULL,
   `lastName` varchar(45) DEFAULT NULL,
   `email` varchar(255) DEFAULT NULL,
-  `division` varchar(45) DEFAULT NULL,
+  `city` varchar(45) DEFAULT NULL,
+  `state` varchar(45) DEFAULT NULL,
+  `division` varchar(10) DEFAULT NULL,
   `password` varchar(255) DEFAULT NULL,
   `phoneNumber` varchar(12) DEFAULT NULL,
+  `validated` tinyint(1) DEFAULT NULL,
   `createdAt` datetime DEFAULT NULL,
   `updatedAt` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `UNIQUE_INDEX` (`email`,`leagueId`),
   KEY `fk_coaches_leagues1_idx` (`leagueId`),
-  CONSTRAINT `fk_coaches_leagues1` FOREIGN KEY (`leagueId`) REFERENCES `leagues` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
+  CONSTRAINT `fk_coaches_leagues1` FOREIGN KEY (`leagueId`) REFERENCES `leagues` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -89,6 +52,46 @@ CREATE TABLE `coaches` (
 LOCK TABLES `coaches` WRITE;
 /*!40000 ALTER TABLE `coaches` DISABLE KEYS */;
 /*!40000 ALTER TABLE `coaches` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `formulas`
+--
+
+DROP TABLE IF EXISTS `formulas`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `formulas` (
+  `id` binary(16) NOT NULL,
+  `leagueId` binary(16) NOT NULL,
+  `coachId` binary(16) NOT NULL,
+  `hittingMechanics` tinyint(4) DEFAULT NULL,
+  `batSpeed` tinyint(4) DEFAULT NULL,
+  `batContact` tinyint(4) DEFAULT NULL,
+  `throwingMechanics` tinyint(4) DEFAULT NULL,
+  `armStrength` tinyint(4) DEFAULT NULL,
+  `armAccuracy` tinyint(4) DEFAULT NULL,
+  `inField` tinyint(4) DEFAULT NULL,
+  `outField` tinyint(4) DEFAULT NULL,
+  `baserunMechanics` tinyint(4) DEFAULT NULL,
+  `baserunSpeed` tinyint(4) DEFAULT NULL,
+  `createdAt` datetime DEFAULT NULL,
+  `updatedAt` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `fk_coachFormulas_leagues1_idx` (`leagueId`),
+  KEY `fk_coachFormulas_coaches1_idx` (`coachId`),
+  CONSTRAINT `fk_coachFormulas_coaches1` FOREIGN KEY (`coachId`) REFERENCES `coaches` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_coachFormulas_leagues1` FOREIGN KEY (`leagueId`) REFERENCES `leagues` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `formulas`
+--
+
+LOCK TABLES `formulas` WRITE;
+/*!40000 ALTER TABLE `formulas` DISABLE KEYS */;
+/*!40000 ALTER TABLE `formulas` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -126,17 +129,60 @@ LOCK TABLES `leagues` WRITE;
 UNLOCK TABLES;
 
 --
--- Table structure for table `playerYearlyStat`
+-- Table structure for table `players`
 --
 
-DROP TABLE IF EXISTS `playerYearlyStat`;
+DROP TABLE IF EXISTS `players`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `playerYearlyStat` (
+CREATE TABLE `players` (
   `id` binary(16) NOT NULL,
-  `playersId` binary(16) NOT NULL,
-  `coachesId` binary(16) NOT NULL,
-  `teamsId` binary(16) NOT NULL,
+  `leagueId` binary(16) NOT NULL,
+  `teamId` binary(16) NOT NULL,
+  `firstName` varchar(45) DEFAULT NULL,
+  `lastName` varchar(45) DEFAULT NULL,
+  `teamNumber` varchar(45) DEFAULT NULL,
+  `birthday` date DEFAULT NULL,
+  `leagueAge` tinyint(4) DEFAULT NULL,
+  `phoneNumber` varchar(12) DEFAULT NULL,
+  `email` varchar(255) DEFAULT NULL,
+  `pitcher` tinyint(1) DEFAULT NULL,
+  `catcher` tinyint(1) DEFAULT NULL,
+  `coachsKid` tinyint(1) DEFAULT NULL,
+  `division` varchar(10) DEFAULT NULL,
+  `parentFirstName` varchar(45) DEFAULT NULL,
+  `parentLastName` varchar(45) DEFAULT NULL,
+  `createdAt` datetime DEFAULT NULL,
+  `updatedAt` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `fk_players_leagues1_idx` (`leagueId`),
+  KEY `unique_id` (`teamId`,`leagueId`,`teamNumber`),
+  CONSTRAINT `fk_players_leagues1` FOREIGN KEY (`leagueId`) REFERENCES `leagues` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_players_teams1` FOREIGN KEY (`teamId`) REFERENCES `teams` (`id`) ON DELETE NO ACTION ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `players`
+--
+
+LOCK TABLES `players` WRITE;
+/*!40000 ALTER TABLE `players` DISABLE KEYS */;
+/*!40000 ALTER TABLE `players` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `stats`
+--
+
+DROP TABLE IF EXISTS `stats`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `stats` (
+  `id` binary(16) NOT NULL,
+  `playerId` binary(16) NOT NULL,
+  `coachId` binary(16) NOT NULL,
+  `teamId` binary(16) NOT NULL,
   `hittingMechanics` tinyint(4) DEFAULT NULL,
   `hittingMechanicsNotes` varchar(1000) DEFAULT NULL,
   `batSpeed` tinyint(4) DEFAULT NULL,
@@ -149,68 +195,34 @@ CREATE TABLE `playerYearlyStat` (
   `armStrengthNotes` varchar(1000) DEFAULT NULL,
   `armAccuracy` tinyint(4) DEFAULT NULL,
   `armAccuracyNotes` varchar(1000) DEFAULT NULL,
-  `infield` tinyint(4) DEFAULT NULL,
-  `infieldNotes` varchar(1000) DEFAULT NULL,
-  `outfield` tinyint(4) DEFAULT NULL,
-  `outfieldNotes` varchar(1000) DEFAULT NULL,
+  `inField` tinyint(4) DEFAULT NULL,
+  `inFieldNotes` varchar(1000) DEFAULT NULL,
+  `outField` tinyint(4) DEFAULT NULL,
+  `outFieldNotes` varchar(1000) DEFAULT NULL,
   `baserunMechanics` tinyint(4) DEFAULT NULL,
   `baserunMechanicsNotes` varchar(1000) DEFAULT NULL,
   `baserunSpeed` tinyint(4) DEFAULT NULL,
   `baserunSpeedNotes` varchar(1000) DEFAULT NULL,
+  `division` varchar(45) DEFAULT NULL,
   `createdAt` datetime DEFAULT NULL,
   `updatedAt` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `fk_playerYearlyStat_coaches1_idx` (`coachesId`),
-  KEY `fk_playerYearlyStat_teams1_idx` (`teamsId`),
-  KEY `fk_playerYearlyStat_players1` (`playersId`),
-  CONSTRAINT `fk_playerYearlyStat_coaches1` FOREIGN KEY (`coachesId`) REFERENCES `coaches` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  CONSTRAINT `fk_playerYearlyStat_players1` FOREIGN KEY (`playersId`) REFERENCES `players` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  CONSTRAINT `fk_playerYearlyStat_teams1` FOREIGN KEY (`teamsId`) REFERENCES `teams` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
+  KEY `fk_playerYearlyStat_coaches1_idx` (`coachId`),
+  KEY `fk_playerYearlyStat_teams1_idx` (`teamId`),
+  KEY `fk_playerYearlyStat_players1` (`playerId`),
+  CONSTRAINT `fk_playerYearlyStat_coaches1` FOREIGN KEY (`coachId`) REFERENCES `coaches` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_playerYearlyStat_players1` FOREIGN KEY (`playerId`) REFERENCES `players` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_playerYearlyStat_teams1` FOREIGN KEY (`teamId`) REFERENCES `teams` (`id`) ON DELETE NO ACTION ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `playerYearlyStat`
+-- Dumping data for table `stats`
 --
 
-LOCK TABLES `playerYearlyStat` WRITE;
-/*!40000 ALTER TABLE `playerYearlyStat` DISABLE KEYS */;
-/*!40000 ALTER TABLE `playerYearlyStat` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `players`
---
-
-DROP TABLE IF EXISTS `players`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `players` (
-  `id` binary(16) NOT NULL,
-  `leagueId` binary(16) NOT NULL,
-  `firstName` varchar(45) DEFAULT NULL,
-  `lastName` varchar(45) DEFAULT NULL,
-  `birthday` date DEFAULT NULL,
-  `leagueAge` tinyint(4) DEFAULT NULL,
-  `phoneNumber` varchar(12) DEFAULT NULL,
-  `email` varchar(255) DEFAULT NULL,
-  `parentFirstName` varchar(45) DEFAULT NULL,
-  `parentLastName` varchar(45) DEFAULT NULL,
-  `createdAt` varchar(45) DEFAULT NULL,
-  `updatedAt` varchar(45) DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `fk_players_leagues1_idx` (`leagueId`),
-  CONSTRAINT `fk_players_leagues1` FOREIGN KEY (`leagueId`) REFERENCES `leagues` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `players`
---
-
-LOCK TABLES `players` WRITE;
-/*!40000 ALTER TABLE `players` DISABLE KEYS */;
-/*!40000 ALTER TABLE `players` ENABLE KEYS */;
+LOCK TABLES `stats` WRITE;
+/*!40000 ALTER TABLE `stats` DISABLE KEYS */;
+/*!40000 ALTER TABLE `stats` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -229,7 +241,8 @@ CREATE TABLE `teams` (
   `updatedAt` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `fk_teams_leagues1_idx` (`leagueId`),
-  CONSTRAINT `fk_teams_leagues1` FOREIGN KEY (`leagueId`) REFERENCES `leagues` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
+  KEY `unique_id` (`leagueId`,`division`,`name`),
+  CONSTRAINT `fk_teams_leagues1` FOREIGN KEY (`leagueId`) REFERENCES `leagues` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -252,13 +265,13 @@ DROP TABLE IF EXISTS `tryouts`;
 CREATE TABLE `tryouts` (
   `id` binary(16) NOT NULL,
   `leagueId` binary(16) NOT NULL,
-  `date` varchar(45) DEFAULT NULL,
+  `date` datetime DEFAULT NULL,
   `address` varchar(45) DEFAULT NULL,
-  `createdAt` varchar(45) DEFAULT NULL,
-  `updatedAt` varchar(45) DEFAULT NULL,
+  `createdAt` datetime DEFAULT NULL,
+  `updatedAt` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `fk_tryouts_leagues1_idx` (`leagueId`),
-  CONSTRAINT `fk_tryouts_leagues1` FOREIGN KEY (`leagueId`) REFERENCES `leagues` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
+  CONSTRAINT `fk_tryouts_leagues1` FOREIGN KEY (`leagueId`) REFERENCES `leagues` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -280,4 +293,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2017-10-30  0:10:29
+-- Dump completed on 2017-11-06  4:03:38
