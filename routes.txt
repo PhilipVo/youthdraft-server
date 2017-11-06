@@ -46,7 +46,7 @@ app.post('/league/login', league.login);
 			"password": "Password1",
 			"leagueId": "B2180690C12111E7B1E593F034EB110A" // use the id from the /leagues
 		}
-	returns:
+	returns: JWT of league Admin
 		"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE1MDk3NzQ5NDIsImlkIjoiQjIxODA2OTBDMTIxMTFFN0IxRTU5M0YwMzRFQjExMEEifQ.Q7VAHt44BMy2NY9sihd-kHNzxDcsk2hAz6AkqLMkaLM"
 
 app.post('/api/league/create', league.createLeague);
@@ -85,10 +85,13 @@ app.put('/api/league', league.update);
 app.put('/api/league/password', league.password);
 	// update the league admin password
 	expects:
-	{
-		"oldPassword": "Password2", // should not match
-		"newPassword": "Password1"
-	}
+		{
+			"oldPassword": "Password2", // should not match
+			"newPassword": "Password1"
+		}
+		returns 200 code or 400 code and {"message": "Current password is incorrect."} or
+			{"message": "Old password and new password should not match."}
+
 
 ////////////////////////////////////////////////////////////
 //                     Tryout routes                      //
@@ -129,6 +132,7 @@ app.post('/api/tryouts', tryouts.modify);
 			]
 		}
 	returns: 200 code
+
 
 ////////////////////////////////////////////////////////////
 //                       Team routes                      //
@@ -186,6 +190,7 @@ app.delete('/api/teams/:id', teams.delete);
 		}
 	returns: 200 code
 
+
 ////////////////////////////////////////////////////////////
 //                     Coaches routes                     //
 ////////////////////////////////////////////////////////////
@@ -196,15 +201,128 @@ app.post('/api/coaches/upload', coaches.upload);
 
 // For single
 app.post('/api/coaches/register', coaches.register);
-	//
+	// Accepts passwords for now, will change to emailed password upon league validation in the future
+	expects:
+		{
+			"email": "mehs@mell.com",
+			"firstName":"Mahs",
+			"lastName": "Bash",
+			"phoneNumber": "918-281-4832",
+			"division": "AAA",
+			"city": "Dallas",
+			"state": "Texas",
+			"leagueId":"94753D90C12D11E79BB98B11A4F1E340"
+		}
+	returns: 200 code
+
 app.get('/api/coaches/all', coaches.getAll);
-app.post('/api/coaches/validate', coaches.validate);
-app.post('/api/coaches/register', coaches.login);
+	// Gets all the coaches of a league
+	expects: JWT of league admin
+	returns:
+		[
+			{
+					"id": "17BBA140C2AE11E794FC7DBC458109E6",
+					"firstName": "Mahs",
+					"lastName": "Bash",
+					"email": "mehs@mell.com",
+					"division": "AAA",
+					"phoneNumber": "918-281-4832",
+					"createdAt": "2017-11-06T04:51:03.000Z",
+					"updatedAt": "2017-11-06T04:51:03.000Z",
+					"leagueId": "94753D90C12D11E79BB98B11A4F1E340"
+			},
+			{
+					"id": "F1650630C2AD11E794FC7DBC458109E6",
+					"firstName": "Mell",
+					"lastName": "Bash",
+					"email": "mel@mell.com",
+					"division": "Major",
+					"phoneNumber": "918-281-4832",
+					"createdAt": "2017-11-06T04:49:59.000Z",
+					"updatedAt": "2017-11-06T04:49:59.000Z",
+					"leagueId": "94753D90C12D11E79BB98B11A4F1E340"
+			}
+		]
+
+app.post('/api/coaches/validate/:id', coaches.validate);
+	// Validates a coach and send out the password to the given email address, the :id expects a id of a coach
+	// Also takes a second or two to reply.  Emails seem to take a while.
+	expects: JWT of league admin
+	returns: 200 code or 400 code and {message: "This coach has already been validated."} if validated already
+
+app.post('/api/coaches/login', coaches.login);
+	// Can only login if validated
+	expects:
+		{
+			"email": "mehs@mell.com",
+			"password": "3cJZftDdkq",
+			"leagueId": "94753D90C12D11E79BB98B11A4F1E340"
+		}
+	returns: JWT of coaches
+		"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE1MDk5NDg4NDUsImlkIjoiMTdCQkExNDBDMkFFMTFFNzk0RkM3REJDNDU4MTA5RTYiLCJsZWFndWVJZCI6Ijk0NzUzRDkwQzEyRDExRTc5QkI5OEIxMUE0RjFFMzQwIn0.QJYSgMcEPAR7U4gralusvxlEkyn8Gz3GUJ3h623TKj0"
+
 app.put('/api/coaches/:id', coaches.coaches);
-app.post('/api/coaches', coaches.coaches);
+	// Modifies a coach's profile.  May have to change it so that a league admin cannot change the email.
+	// :id is the coach's id
+	expects: Either JWT of league admin or a coach
+		{
+			"email": "mehs@mell.com",
+			"firstName":"Mas",
+			"lastName": "Bah",
+			"phoneNumber": "918-281-4832",
+			"division": "AA",
+			"city": "Dallas",
+			"state": "Texas"
+		}
+	returns 200 code
+
+app.post('/api/coaches', coaches.createCoaches);
+	// Create a coach from the league admin screen.  Is Pre-validated and will send an email containing
+	// the coaches password to the coach's email address. Also takes a second or two to reply.  Emails seem to take a while.
+	expects: Either JWT of league admin or a coach
+		{
+			"email": "mehs@mell.com",
+			"firstName":"Mas",
+			"lastName": "Bah",
+			"phoneNumber": "918-281-4832",
+			"division": "AA",
+			"city": "Dallas",
+			"state": "Texas"
+		}
+	returns 200 code
+
 app.post('/api/coaches/password', coaches.password);
+	// For coaches to change their passwords.
+	expects: JWT of a coach
+		{
+			"oldPassword": "Password2",
+			"newPassword": "Password1"
+		}
+	returns 200 code or 400 code and {"message": "Current password is incorrect."} or
+		{"message": "Old password and new password should not match."}
+
 app.get('/api/coaches', coaches.get);
+	// Gets coach's info for the coach's setting page.
+	expects: JWT of a coach
+	returns:
+		{
+			"id": "060D2C20C2C211E785B093803AAE11B2",
+			"firstName": "Moo",
+			"lastName": "Cow",
+			"email": "mootest21@gmail.com",
+			"division": "AAA",
+			"phoneNumber": "918-281-4832",
+			"createdAt": "2017-11-06T07:13:43.000Z",
+			"updatedAt": "2017-11-06T07:27:39.000Z",
+			"leagueId": "94753D90C12D11E79BB98B11A4F1E340"
+		}
+
 app.delete('/api/coaches/:id', coaches.delete);
+	// Delete a coach from the League Admin's dashboard.
+	// :id is the id of the coach
+	expects: JWT of a league admin
+	returns: 200 code
+
 
 ////////////////////////////////////////////////////////////
 //                     Players routes                     //
@@ -212,9 +330,39 @@ app.delete('/api/coaches/:id', coaches.delete);
 
 // For bulk
 app.post('/api/players/upload', players.upload);
+	// still working on whether or not do this front end...
+
 // For single
-app.post('/api/players/:id', players.players);
 app.post('/api/players', players.players);
+	// For the league admin to create a player's info
+	// :id expects the player's id
+	expects: JWT of a league admin
+		{
+			"email": "mehs@mell.com",
+			"firstName":"Mas",
+			"lastName": "Bah",
+			"phoneNumber": "918-281-4832",
+			"division": "AA",
+			"city": "Dallas",
+			"state": "Texas"
+		}
+	returns 200 code
+
+app.post('/api/players/:id', players.players);
+	// For the league admin to update a player's info
+	// :id expects the player's id
+	expects: JWT of a league admin
+		{
+			"email": "mehs@mell.com",
+			"firstName":"Mas",
+			"lastName": "Bah",
+			"phoneNumber": "918-281-4832",
+			"division": "AA",
+			"city": "Dallas",
+			"state": "Texas"
+		}
+	returns 200 code
+
 app.get('/api/players', players.getAll);
 app.get('/api/players/get-players-for-division/:division', players.getDivision);
 app.delete('/api/players/:id', players.delete);

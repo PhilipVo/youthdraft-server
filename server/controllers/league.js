@@ -68,6 +68,10 @@ module.exports = {
       });
 	},
   password: (req, res) => {
+    // Check if form data is filled:
+    if (!req.body.oldPassword  || !req.body.newPassword) {
+      return res.status(400).json({ message: "Both password field should be filled" });
+    }
     // Check if password match each other:
     if (req.body.oldPassword === req.body.newPassword) {
       return res.status(400).json({ message: "Old password and new password should not match." });

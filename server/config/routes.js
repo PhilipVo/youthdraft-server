@@ -51,13 +51,14 @@ module.exports = function (app) {
 	// For single
 	app.post('/api/coaches/register', coaches.register);
 	app.get('/api/coaches/all', coaches.getAll);
-	app.post('/api/coaches/validate', coaches.validate);
-	app.post('/api/coaches/register', coaches.login);
+	app.post('/api/coaches/validate/:id', coaches.validate);
+	app.post('/api/coaches/login', coaches.login);
 	app.put('/api/coaches/:id', coaches.coaches);
-	app.post('/api/coaches', coaches.coaches);
+	app.post('/api/coaches', coaches.createCoaches);
 	app.post('/api/coaches/password', coaches.password);
 	app.get('/api/coaches', coaches.get);
 	app.delete('/api/coaches/:id', coaches.delete);
+	app.post('/test', coaches.test);
 
 	////////////////////////////////////////////////////////////
 	//                     Players routes                     //
