@@ -44,6 +44,7 @@ module.exports = {
     if (req.user.leagueId) {
       tempId = req.user.leagueId
     }
+    req.body.division = req.body.division.toLowerCase();
     Promise.using(getConnection(), connection => {
       const query = "SELECT HEX(id) as id, firstName, lastName, teamNumber, birthday, leagueAge, phoneNumber, email, division, " +
         "pitcher, catcher, coachsKid, parentFirstName, parentLastName, createdAt, updatedAt, HEX(leagueId) as leagueId, " +
@@ -62,7 +63,7 @@ module.exports = {
       .catch(error => res.status(400).json({ message: "Please contact an admin." }));
 	},
   players: (req, res) => {
-    let query, data
+    let query, data, pitcher = 0, catcher = 0, coachsKid = 0
     // Expecting all form data.
 		if (
 			!req.body.firstName ||
@@ -80,11 +81,23 @@ module.exports = {
       !req.body.parentLastName ||
       !req.body.teamId
 		)
-			return res.status(400).json({ message: "All form fields are required." });
+			return res.status(400).json({ message: "All form fields are required.", body: req.body });
 
     // Validate email:
 		if (!/[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/.test(req.body.email))
 			return res.status(400).json({ message: "Invalid email. Email format should be: email@mailserver.com." });
+
+    if (req.body.pitcher == "true") {
+      pitcher = 1
+    }
+    if (req.body.catcher == "true") {
+      catcher = 1
+    }
+    if (req.body.coachsKid == "true") {
+      coachsKid = 1
+    }
+
+    req.body.division = req.body.division.toLowerCase();
 
     // Check if it's updating or if it's creating by seeing if there is an id
     if (req.params.id) {
@@ -100,9 +113,9 @@ module.exports = {
         req.body.phoneNumber,
         req.body.email,
         req.body.division,
-        req.body.pitcher,
-        req.body.catcher,
-  			req.body.coachsKid,
+        pitcher,
+        catcher,
+        coachsKid,
         req.body.parentFirstName,
         req.body.parentLastName,
         req.body.teamId,
@@ -125,9 +138,9 @@ module.exports = {
         req.body.phoneNumber,
         req.body.email,
         req.body.division,
-        req.body.pitcher,
-        req.body.catcher,
-  			req.body.coachsKid,
+        pitcher,
+        catcher,
+        coachsKid,
         req.body.parentFirstName,
         req.body.parentLastName
       ];

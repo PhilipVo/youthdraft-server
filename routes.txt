@@ -334,55 +334,252 @@ app.post('/api/players/upload', players.upload);
 
 // For single
 app.post('/api/players', players.players);
-	// For the league admin to create a player's info
-	// :id expects the player's id
+	// For the league admin to create a player
 	expects: JWT of a league admin
 		{
-			"email": "mehs@mell.com",
-			"firstName":"Mas",
-			"lastName": "Bah",
-			"phoneNumber": "918-281-4832",
-			"division": "AA",
-			"city": "Dallas",
-			"state": "Texas"
+			"firstName": "Grail",
+			"lastName": "Sue",
+			"teamNumber": "15",
+			"birthday": "2001-3-25",
+			"leagueAge": "16",
+			"phoneNumber": "932-843-2394",
+			"email": "tom@tom.com",
+			"division": "AAA",
+			"pitcher": 1,
+			"catcher": 0,
+			"coachsKid": 0,
+			"parentFirstName": "Mary",
+			"parentLastName": "Sue",
+			"teamId": "73DFFB60C1F011E7BC8C7F70B6BAE7A5"
 		}
 	returns 200 code
 
-app.post('/api/players/:id', players.players);
+app.put('/api/players/:id', players.players);
 	// For the league admin to update a player's info
 	// :id expects the player's id
 	expects: JWT of a league admin
 		{
-			"email": "mehs@mell.com",
-			"firstName":"Mas",
-			"lastName": "Bah",
-			"phoneNumber": "918-281-4832",
-			"division": "AA",
-			"city": "Dallas",
-			"state": "Texas"
+			"firstName": "Grail",
+			"lastName": "Sue",
+			"teamNumber": "15",
+			"birthday": "2001-3-25",
+			"leagueAge": "16",
+			"phoneNumber": "932-843-2394",
+			"email": "tom@tom.com",
+			"division": "AAA",
+			"pitcher": 1,
+			"catcher": 0,
+			"coachsKid": 0,
+			"parentFirstName": "Mary",
+			"parentLastName": "Sue",
+			"teamId": "73DFFB60C1F011E7BC8C7F70B6BAE7A5"
 		}
 	returns 200 code
 
 app.get('/api/players', players.getAll);
+	// Gets all the players of the league
+	expects: JWT of league admin
+	returns:
+	[
+    {
+        "id": "18AAC7F0C2C911E7A116094B99CE6F39",
+        "firstName": "Grail",
+        "lastName": "Sue",
+        "teamNumber": "15",
+        "birthday": "2001-03-25T08:00:00.000Z",
+        "leagueAge": 16,
+        "phoneNumber": "932-843-2394",
+        "email": "tom@tom.com",
+        "division": "AAA",  // capitalization does not matter
+        "pitcher": 1,
+        "catcher": 0,
+        "coachsKid": 0,
+        "parentFirstName": "Mary",
+        "parentLastName": "Sue",
+        "createdAt": "2017-11-06T08:04:21.000Z",
+        "updatedAt": "2017-11-06T08:04:21.000Z",
+        "leagueId": "94753D90C12D11E79BB98B11A4F1E340",
+        "teamId": "73DFFB60C1F011E7BC8C7F70B6BAE7A5"
+    },
+    {
+        "id": "643E9ED0C2C911E7A116094B99CE6F39",
+        "firstName": "Bobby",
+        "lastName": "Sue",
+        "teamNumber": "14",
+        "birthday": "2001-03-25T08:00:00.000Z",
+        "leagueAge": 15,
+        "phoneNumber": "932-843-2394",
+        "email": "tom@tom.com",
+        "division": "AA",  // capitalization does not matter
+        "pitcher": 1,
+        "catcher": 0,
+        "coachsKid": 0,
+        "parentFirstName": "Mary",
+        "parentLastName": "Sue",
+        "createdAt": "2017-11-06T08:06:28.000Z",
+        "updatedAt": "2017-11-06T08:06:28.000Z",
+        "leagueId": "94753D90C12D11E79BB98B11A4F1E340",
+        "teamId": "73DFFB60C1F011E7BC8C7F70B6BAE7A5"
+    }
+	]
+
 app.get('/api/players/get-players-for-division/:division', players.getDivision);
+	// Gets all the players of the division
+	// :division expects either "Majors", "AAA", "AA", "A", "Farm", "Rookie", "Teeball" capitalization does not matter
+	expects: JWT of league admin
+	returns:
+		[
+			{
+					"id": "18AAC7F0C2C911E7A116094B99CE6F39",
+					"firstName": "Grail",
+					"lastName": "Sue",
+					"teamNumber": "15",
+					"birthday": "2001-03-25T08:00:00.000Z",
+					"leagueAge": 16,
+					"phoneNumber": "932-843-2394",
+					"email": "tom@tom.com",
+					"division": "AAA",  // capitalization does not matter
+					"pitcher": 1,
+					"catcher": 0,
+					"coachsKid": 0,
+					"parentFirstName": "Mary",
+					"parentLastName": "Sue",
+					"createdAt": "2017-11-06T08:04:21.000Z",
+					"updatedAt": "2017-11-06T08:04:21.000Z",
+					"leagueId": "94753D90C12D11E79BB98B11A4F1E340",
+					"teamId": "73DFFB60C1F011E7BC8C7F70B6BAE7A5"
+			}
+		]
+
 app.delete('/api/players/:id', players.delete);
+	// allows league admin to delete a player
+	expects: JWT of league admin
+	returns: 200 code
 
 ////////////////////////////////////////////////////////////
 //                     Formulas routes                    //
 ////////////////////////////////////////////////////////////
 
-app.post('/api/formulas/:id', formulas.formulas);
 app.post('/api/formulas', formulas.formulas);
+	// allows a coach to create a formula
+	expects: any combination of the following form parameters and coach's JWT
+		{
+			"hittingMechanics": 3,
+			"batSpeed": 6,
+			"batContact": 8,
+			"throwingMechanics": 3,
+			"armStrength": 5,
+			"armAccuracy": 6,
+			"inField": 8,
+			"outField": 3,
+			"baserunMechanics": 8,
+			"baserunSpeed": 3
+		}
+	returns: the id of the formula that was just created.  Limited to 5 formulas for now.
+		"ac067890c2d411e7b609611dfbd33c48"
+
+app.put('/api/formulas/:id', formulas.formulas);
+	// allows a coach to edit a formula
+	// :id expects the id of the formula that needs editing
+	expects: any combination of the following form parameters and coach's JWT
+		{
+			"hittingMechanics": 3,
+			"batSpeed": 6,
+			"batContact": 8,
+			"throwingMechanics": 3,
+			"armStrength": 5,
+			"armAccuracy": 6,
+			"inField": 8,
+			"outField": 3,
+			"baserunMechanics": 8,
+			"baserunSpeed": 3
+		}
+	returns: 200 code
+
 app.get('/api/formulas', formulas.getAll);
+	// allows a coach to get all his formulas
+	expects: JWT of coach
+	returns:
+		[
+			{
+					"id": "0E6EC5E0C2D611E7A025A509ABEBFCD1",
+					"hittingMechanics": 3,
+					"batSpeed": 10,
+					"batContact": 8,
+					"throwingMechanics": 3,
+					"armStrength": 5,
+					"armAccuracy": 6,
+					"inField": 8,
+					"outField": 3,
+					"baserunMechanics": 8,
+					"baserunSpeed": 3,
+					"createdAt": "2017-11-06T09:37:07.000Z",
+					"updatedAt": "2017-11-06T09:37:26.000Z"
+			},
+			{
+					"id": "1B4D0590C2D311E7811AFDC0D03C7FDF",
+					"hittingMechanics": 3,
+					"batSpeed": null,
+					"batContact": null,
+					"throwingMechanics": null,
+					"armStrength": null,
+					"armAccuracy": null,
+					"inField": null,
+					"outField": null,
+					"baserunMechanics": null,
+					"baserunSpeed": null,
+					"createdAt": "2017-11-06T09:18:13.000Z",
+					"updatedAt": "2017-11-06T09:18:13.000Z"
+			}
+		]
+
 app.delete('/api/formulas/:id', formulas.delete);
+	// allows a coach to edit a formula
+	// :id expects the id of the formula that the coach wants to delete
+	expects: JWT of coach
+	returns: 200 code
 
 
 ////////////////////////////////////////////////////////////
 //                      Stats routes                      //
 ////////////////////////////////////////////////////////////
 
-app.post('/api/stats/:id', stats.stats);
 app.post('/api/stats', stats.stats);
+	// allows a coach to assess a player
+	expects: any combination of the following form parameters and coach's JWT
+		{
+			"hittingMechanics": 3,
+			"batSpeed": 6,
+			"batContact": 8,
+			"throwingMechanics": 3,
+			"armStrength": 5,
+			"armAccuracy": 6,
+			"inField": 8,
+			"outField": 3,
+			"baserunMechanics": 8,
+			"baserunSpeed": 3
+		}
+	returns: the id of the assessment that was just created.
+		"ac067890c2d411e7b609611dfbd33c48"
+
+app.put('/api/stats/:id', stats.stats);
+	// allows a coach to edit a assessment
+	// :id expects the id of the assessment that needs editing
+	expects: any combination of the following form parameters and coach's JWT
+		{
+			"hittingMechanics": 3,
+			"batSpeed": 6,
+			"batContact": 8,
+			"throwingMechanics": 3,
+			"armStrength": 5,
+			"armAccuracy": 6,
+			"inField": 8,
+			"outField": 3,
+			"baserunMechanics": 8,
+			"baserunSpeed": 3
+		}
+	returns: 200 code
+
 app.get('/api/stats', stats.getAll);
 app.get('/api/stats/:playerId', stats.get);
 app.delete('/api/stats/:id', stats.delete);

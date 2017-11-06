@@ -54,6 +54,9 @@ module.exports = {
       .catch(error => res.status(400).json({ message: "Please contact an admin." }));
 	},
   get: (req, res) => {
+    if (!req.user.leagueId) {
+      return res.status(400).json({ message: "You must be a coach to use this route." })
+    }
     Promise.using(getConnection(), connection => {
       const query = "SELECT HEX(id) as id, firstName, lastName, email, division, phoneNumber, createdAt, " +
         "updatedAt, HEX(leagueId) as leagueId FROM coaches WHERE leagueId = UNHEX(?) AND id = UNHEX(?)";

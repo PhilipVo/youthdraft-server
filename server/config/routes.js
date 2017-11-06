@@ -67,7 +67,7 @@ module.exports = function (app) {
 	// For bulk
 	app.post('/api/players/upload', players.upload);
 	// For single
-	app.post('/api/players/:id', players.players);
+	app.put('/api/players/:id', players.players);
 	app.post('/api/players', players.players);
 	app.get('/api/players', players.getAll);
 	app.get('/api/players/get-players-for-division/:division', players.getDivision);
@@ -77,7 +77,7 @@ module.exports = function (app) {
 	//                     Formulas routes                    //
 	////////////////////////////////////////////////////////////
 
-	app.post('/api/formulas/:id', formulas.formulas);
+	app.put('/api/formulas/:id', formulas.formulas);
 	app.post('/api/formulas', formulas.formulas);
 	app.get('/api/formulas', formulas.getAll);
 	app.delete('/api/formulas/:id', formulas.delete);
@@ -87,7 +87,7 @@ module.exports = function (app) {
 	//                      Stats routes                      //
 	////////////////////////////////////////////////////////////
 
-	app.post('/api/stats/:id', stats.stats);
+	app.put('/api/stats/:id', stats.stats);
 	app.post('/api/stats', stats.stats);
 	app.get('/api/stats', stats.getAll);
 	app.get('/api/stats/:playerId', stats.get);
