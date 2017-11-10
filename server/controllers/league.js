@@ -27,7 +27,7 @@ module.exports = {
   },
   getAll: (req, res) => {
     Promise.using(getConnection(), connection => {
-      const query = "SELECT HEX(id) as id, leagueName, city, state FROM leagues";
+      const query = "SELECT leagueName, city, state FROM leagues";
       return connection.execute(query);
     }).spread(data => res.status(200).json(data))
       .catch(error => res.status(400).json({ message: "Please contact an admin." }));
@@ -150,7 +150,7 @@ module.exports = {
   },
   login: (req, res) => {
 		// Validate login data:
-		if (!req.body.email || !req.body.password || !req.body.leagueId)
+		if (!req.body.email || !req.body.password || !req.body.leagueName || !req.body.city || !req.body.state)
 			return res.status(400).json({ message: "All form fields are required." });
 
 		// Pre-validate password:
@@ -159,8 +159,9 @@ module.exports = {
 
 		Promise.using(getConnection(), connection => {
 			// Get user by email:
-			const query = "SELECT HEX(id) AS id, email, password FROM leagues WHERE email = ? AND id = UNHEX(?) LIMIT 1";
-			return connection.execute(query, [req.body.email, req.body.leagueId]);
+			const query = "SELECT HEX(id) AS id, email, password FROM leagues WHERE email = ? AND leagueName = ? " +
+      "AND city = ? AND state = ? LIMIT 1";
+			return connection.execute(query, [req.body.email, req.body.leagueName, req.body.city, req.body.state]);
 		}).spread(data => {
 			if (data.length == 0)
 				throw { status: 400, message: "Email/password/league name does not match." };

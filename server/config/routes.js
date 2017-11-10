@@ -60,7 +60,6 @@ module.exports = function (app) {
 	app.post('/api/coaches/password', coaches.password);
 	app.get('/api/coaches', coaches.get);
 	app.delete('/api/coaches/:id', coaches.delete);
-	app.post('/test', coaches.test);
 
 	////////////////////////////////////////////////////////////
 	//                     Players routes                     //

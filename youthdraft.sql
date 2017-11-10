@@ -51,6 +51,7 @@ CREATE TABLE `coaches` (
 
 LOCK TABLES `coaches` WRITE;
 /*!40000 ALTER TABLE `coaches` DISABLE KEYS */;
+INSERT INTO `coaches` VALUES ('ˆù Ãöç¢5ûª¥@‡’','>ÊøðÃöç¢5ûª¥@‡’','Mahs','Bash','mehs@mell.com','Dallas','Texas','AAA','$2a$10$5q.u4SUXWOxn1y2G1YPWEO7OHRUJHigaxNMV/3R5N30iMI0I/E96q','918-281-4832',1,'2017-11-07 12:02:07','2017-11-07 12:03:23');
 /*!40000 ALTER TABLE `coaches` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -125,6 +126,7 @@ CREATE TABLE `leagues` (
 
 LOCK TABLES `leagues` WRITE;
 /*!40000 ALTER TABLE `leagues` DISABLE KEYS */;
+INSERT INTO `leagues` VALUES ('>ÊøðÃöç¢5ûª¥@‡’','Giants','moo@moo.com','$2a$10$jXZER72U8f/Pjs79rZjqmOSNifVJBVAlyFLNaB1/oLmRf2af8Q3s2','Bob','Ross','123-456-7890','Mehi','CA',NULL,'2017-11-07 12:00:04','2017-11-07 12:00:04');
 /*!40000 ALTER TABLE `leagues` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -293,4 +295,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2017-11-06  4:03:38
+-- Dump completed on 2017-11-07 12:23:43

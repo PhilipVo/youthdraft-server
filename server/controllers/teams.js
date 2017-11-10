@@ -58,6 +58,8 @@ module.exports = {
 		)
 			return res.status(400).json({ message: "All form fields are required." });
 
+    req.body.division = req.body.division.toLowerCase();
+
     // Check if it's updating or if it's creating by seeing if there is an id
     if (req.params.id) {
       query = "UPDATE teams SET name = ?, division = ?, updatedAt = NOW() WHERE id = UNHEX(?) and leagueId = UNHEX(?) LIMIT 1";

@@ -26,13 +26,11 @@ app.get('/leagues', league.getAll);
 	returns:
   [
 	  {
-	      "id": "B2180690C12111E7B1E593F034EB110A",
 	      "leagueName": "Rivercats",
 	      "city": "Mehicos",
 	      "state": "CA"
 	  },
 	  {
-	      "id": "FA260020C12311E782D21BC0EFEB7703",
 	      "leagueName": "Giants",
 	      "city": "Mehi",
 	      "state": "CA"
@@ -54,7 +52,9 @@ app.post('/league/login', league.login);
 		{
 			"email": "moo@moo.com",
 			"password": "Password1",
-			"leagueId": "B2180690C12111E7B1E593F034EB110A" // use the id from the /leagues
+			"leagueName": "Giants", // use the leagueName from the GET /leagues route
+			"city": "Mehi", // use the city from the GET /leagues route
+			"state": "CA" // use the state from the GET /leagues route
 		}
 	returns: JWT of league Admin
 		"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE1MDk3NzQ5NDIsImlkIjoiQjIxODA2OTBDMTIxMTFFN0IxRTU5M0YwMzRFQjExMEEifQ.Q7VAHt44BMy2NY9sihd-kHNzxDcsk2hAz6AkqLMkaLM"
@@ -277,7 +277,9 @@ app.post('/coaches/login', coaches.login);
 		{
 			"email": "mehs@mell.com",
 			"password": "3cJZftDdkq",
-			"leagueId": "94753D90C12D11E79BB98B11A4F1E340"
+			"leagueName": "Giants", // use the leagueName from the GET /leagues route
+			"city": "Mehi", // use the city from the GET /leagues route
+			"state": "CA" // use the state from the GET /leagues route
 		}
 	returns: JWT of coaches
 		"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE1MDk5NDg4NDUsImlkIjoiMTdCQkExNDBDMkFFMTFFNzk0RkM3REJDNDU4MTA5RTYiLCJsZWFndWVJZCI6Ijk0NzUzRDkwQzEyRDExRTc5QkI5OEIxMUE0RjFFMzQwIn0.QJYSgMcEPAR7U4gralusvxlEkyn8Gz3GUJ3h623TKj0"
@@ -399,7 +401,7 @@ app.put('/api/players/:id', players.players);
 
 app.get('/api/players', players.getAll);
 	// Gets all the players of the league
-	expects: JWT of league admin
+	expects: JWT of league admin or coach, if it is a coach it only shows the players of his division
 	returns:
 	[
     {

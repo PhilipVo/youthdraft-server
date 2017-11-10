@@ -40,26 +40,32 @@ module.exports = {
     });
 	},
   getDivision: (req, res) => {
-    let tempId = req.user.id
-    if (req.user.leagueId) {
-      tempId = req.user.leagueId
-    }
     req.body.division = req.body.division.toLowerCase();
     Promise.using(getConnection(), connection => {
       const query = "SELECT HEX(id) as id, firstName, lastName, teamNumber, birthday, leagueAge, phoneNumber, email, division, " +
         "pitcher, catcher, coachsKid, parentFirstName, parentLastName, createdAt, updatedAt, HEX(leagueId) as leagueId, " +
         "HEX(teamId) as teamId FROM players WHERE leagueId = UNHEX(?) AND division = ?";
-      return connection.execute(query, [tempId, req.params.division]);
+      return connection.execute(query, [req.user.id, req.params.division]);
     }).spread(data => res.status(200).json(data))
       .catch(error => res.status(400).json({ message: "Please contact an admin." }));
 	},
   getAll: (req, res) => {
-    Promise.using(getConnection(), connection => {
-      const query = "SELECT HEX(id) as id, firstName, lastName, teamNumber, birthday, leagueAge, phoneNumber, email, division, " +
-        "pitcher, catcher, coachsKid, parentFirstName, parentLastName, createdAt, updatedAt, HEX(leagueId) as leagueId, " +
-        "HEX(teamId) as teamId FROM players WHERE leagueId = UNHEX(?)";
-      return connection.execute(query, [req.user.id]);
-    }).spread(data => res.status(200).json(data))
+    let tempId = [req.user.id]
+    let query = "SELECT HEX(id) as id, firstName, lastName, teamNumber, birthday, leagueAge, phoneNumber, email, division, " +
+      "pitcher, catcher, coachsKid, parentFirstName, parentLastName, createdAt, updatedAt, HEX(leagueId) as leagueId, " +
+      "HEX(teamId) as teamId FROM players WHERE leagueId = UNHEX(?)";
+    if (req.user.leagueId) {
+      tempId = [req.user.id, req.user.leagueId, req.user.leagueId]
+      query = "SELECT HEX(c.id) as id, c.firstName as firstName, c.lastName as lastName, c.teamNumber as teamNumber, " +
+        "c.birthday as birthday, c.leagueAge as leagueAge, c.phoneNumber as phoneNumber, c.email as email, " +
+        "c.pitcher as pitcher, c.catcher as catcher, c.coachsKid as coachsKid, c.parentFirstName as parentFirstName, " +
+        "c.parentLastName as parentLastName, c.createdAt as createdAt, c.updatedAt as updatedAt, HEX(c.leagueId) as leagueId, " +
+        "HEX(c.teamId) as teamId, b.name as teamName, b.division as division FROM coaches as a INNER JOIN teams as b " +
+        "ON a.division = b.division INNER JOIN players as c ON b.id = c.teamId WHERE a.id = UNHEX(?) AND b.leagueId = UNHEX(?) " +
+        "AND c.leagueId = UNHEX(?)";
+    }
+    Promise.using(getConnection(), connection => connection.execute(query, tempId))
+      .spread(data => res.status(200).json(data))
       .catch(error => res.status(400).json({ message: "Please contact an admin." }));
 	},
   players: (req, res) => {

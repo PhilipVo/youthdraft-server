@@ -101,47 +101,6 @@ module.exports = {
         return res.status(400).json({ message: "Please contact an admin."});
       });
   },
-  login: (req, res) => {
-		// Validate login data:
-		if (!req.body.email || !req.body.password || !req.body.leagueName)
-			return res.status(400).json({ message: "All form fields are required." });
-
-		// Pre-validate password:
-		if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d$@$!%*?&](?=.{7,})/.test(req.body.password))
-			return res.status(400).json({ message: "Email/password/league name does not match." });
-
-    // Validate email:
-		if (!/[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/.test(req.body.email))
-			return res.status(400).json({ message: "Invalid email. Email format should be: email@mailserver.com." });
-
-		Promise.using(getConnection(), connection => {
-			// Get user by email:
-			const query = "SELECT HEX(id) AS id, email, password, validated FROM leagues WHERE email = ? AND leagueId = ? LIMIT 1";
-			return connection.execute(query, [req.body.email, req.body.leagueName]);
-		}).spread(data => {
-      if (validated == 0) {
-        throw { status: 400, message: "Please wait for your account to be validated before logging in again." };
-      }
-			if (data.length == 0)
-				throw { status: 400, message: "Email/password/league name does not match." };
-
-			// Check valid password:
-			return [bcrypt.compareAsync(req.body.password, data[0].password), data];
-		}).spread((isMatch, data) => {
-			if (!isMatch)
-				throw { status: 400, message: "Email/password/league name does not match." };
-
-			const gametimeToken = jwt.sign({
-				iat: Math.floor(Date.now() / 1000) - 30,
-				id: data[0].id
-			}, jwtKey);
-			return res.status(200).json(gametimeToken);
-		}).catch(error => {
-			if (error.status)
-				return res.status(error.status).json({ message: error.message });
-			return res.status(400).json({ message: "Please contact an admin.", error: error});
-		});
-	},
   coaches: (req, res) => {
     // Expecting all form data.
 		if (
@@ -158,6 +117,8 @@ module.exports = {
     // Validate email:
 		if (!/[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/.test(req.body.email))
 			return res.status(400).json({ message: "Invalid email. Email format should be: email@mailserver.com." });
+
+    req.body.division = req.body.division.toLowerCase();
 
     const query = "UPDATE coaches SET email = ?, firstName = ?, lastName = ?, phoneNumber = ?, division = ?, " +
       "city = ?, state = ?, updatedAt = NOW() WHERE id = UNHEX(?) and leagueId = UNHEX(?) LIMIT 1";
@@ -202,6 +163,8 @@ module.exports = {
     // Validate email:
 		if (!/[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/.test(req.body.email))
 			return res.status(400).json({ message: "Invalid email. Email format should be: email@mailserver.com." });
+
+    req.body.division = req.body.division.toLowerCase();
 
     const password = generator.generate({ length: 10, strict: true, numbers: true  });
     bcrypt.genSaltAsync(10)
@@ -254,6 +217,8 @@ module.exports = {
 		if (!/[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/.test(req.body.email))
 			return res.status(400).json({ message: "Invalid email. Email format should be: email@mailserver.com." });
 
+    req.body.division = req.body.division.toLowerCase();
+
     const id = uuid().replace(/\-/g, "")
 
     //Setup the query
@@ -281,7 +246,7 @@ module.exports = {
 	},
   login: (req, res) => {
 		// Validate login data:
-		if (!req.body.email || !req.body.password || !req.body.leagueId)
+    if (!req.body.email || !req.body.password || !req.body.leagueName || !req.body.city || !req.body.state)
 			return res.status(400).json({ message: "All form fields are required." });
 
 		// Pre-validate password:
@@ -290,8 +255,10 @@ module.exports = {
 
 		Promise.using(getConnection(), connection => {
 			// Get user by email:
-			const query = "SELECT HEX(id) AS id, email, password, validated FROM coaches WHERE email = ? AND leagueId = UNHEX(?) LIMIT 1";
-			return connection.execute(query, [req.body.email, req.body.leagueId]);
+			const query = "SELECT HEX(b.id) AS id, b.email as email, b.password as password, b.validated as validated, " +
+      "HEX(b.leagueId) as leagueId FROM leagues as a INNER JOIN coaches as b ON a.id = b.leagueId WHERE b.email = ? " +
+      "AND a.leagueName = ? AND a.city = ? AND a.state = ? LIMIT 1";
+			return connection.execute(query, [req.body.email, req.body.leagueName, req.body.city, req.body.state]);
 		}).spread(data => {
 			if (data.length == 0)
 				throw { status: 400, message: "Email/password/league name does not match." };
@@ -308,7 +275,7 @@ module.exports = {
 			const gametimeToken = jwt.sign({
 				iat: Math.floor(Date.now() / 1000) - 30,
 				id: data[0].id,
-        leagueId: req.body.leagueId,
+        leagueId: data[0].leagueId,
 			}, jwtKey);
 			return res.status(200).json(gametimeToken);
 		}).catch(error => {
@@ -397,14 +364,5 @@ module.exports = {
       return connection.execute(query, [req.params.id, req.user.id]);
     }).spread(data => res.status(200).json())
       .catch(error => res.status(400).json({ message: "Please contact an admin." }));
-	},
-  test: (req, res) => {
-    const password = generator.generate({ length: 10, strict: true, numbers: true  });
-    nodeMailer.mailOptions.to = "c4fusion@gmail.com"
-    nodeMailer.mailOptions.subject = "Your account has been validated"
-    nodeMailer.mailOptions.html = "<p>Here is your password: " + password + "</p>"
-    nodeMailer.transporter.sendMail(nodeMailer.mailOptions)
-    .then(info => res.status(200).json("Works"))
-    .catch(error => res.status(400).json({ message: "Please contact an admin.", error: error }));
 	}
 }
