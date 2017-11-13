@@ -368,9 +368,9 @@ app.post('/api/players', players.players);
 			"phoneNumber": "932-843-2394",
 			"email": "tom@tom.com",
 			"division": "AAA",
-			"pitcher": 1,
-			"catcher": 0,
-			"coachsKid": 0,
+			"pitcher": "true",
+			"catcher": "false",
+			"coachsKid": "false",
 			"parentFirstName": "Mary",
 			"parentLastName": "Sue",
 			"teamId": "73DFFB60C1F011E7BC8C7F70B6BAE7A5"
@@ -591,7 +591,7 @@ app.post('/api/stats', stats.stats);
 			"baserunMechanicsNotes": "Runs well",
 			"baserunSpeed": 3,
 			"baserunSpeedNotes": "Slow as heck",
-			"division" = "AAA",										 //not case sensitive
+			"division": "AAA",										 //not case sensitive
 			"playerId": "A464C7E0C2CA11E7B03EEDE8E1EB4852",
 			"teamId": "73DFFB60C1F011E7BC8C7F70B6BAE7A5"
 		}
@@ -628,9 +628,89 @@ app.put('/api/stats/:id', stats.stats);
 	returns: 200 code
 
 app.get('/api/stats', stats.getAll);
-	// allows a coach to get all the stats of his division
+	// allows a coach to get all the players of his division's assessment. Only the latest one per player
 	expects: JWT of the coach
-	returns: an array of objects, still working on the sql to get it work correctly
+	returns: an array of objects
+		[
+			{
+					"id": "98B601D0C68E11E7827E5D86696CCCC9",
+					"hittingMechanics": 3,
+					"hittingMechanicsNotes": "Very bad mechanics",
+					"batSpeed": 6,
+					"batSpeedNotes": "Good speed",
+					"batContact": 8,
+					"batContactNotes": "Very Good contact somehow",
+					"throwingMechanics": 3,
+					"throwingMechanicsNotes": "Bad mechanics",
+					"armStrength": 5,
+					"armStrengthNotes": "Decent arm strength",
+					"armAccuracy": 6,
+					"armAccuracyNotes": "Above average accuracy",
+					"inField": 8,
+					"inFieldNotes": null,
+					"outField": null,
+					"outFieldNotes": null,
+					"baserunMechanics": null,
+					"baserunMechanicsNotes": null,
+					"baserunSpeed": null,
+					"baserunSpeedNotes": null,
+					"division": "aaa",
+					"createdAt": "2017-11-11T03:15:40.000Z",
+					"updatedAt": "2017-11-11T03:15:40.000Z"
+			},
+			{
+					"id": "A5DB27D0C68611E794717D7F9415A32A",
+					"hittingMechanics": 3,
+					"hittingMechanicsNotes": "Very bad mechanics",
+					"batSpeed": 6,
+					"batSpeedNotes": "Good speed",
+					"batContact": 8,
+					"batContactNotes": "Very Good contact somehow",
+					"throwingMechanics": 3,
+					"throwingMechanicsNotes": "Bad mechanics",
+					"armStrength": 5,
+					"armStrengthNotes": "Decent arm strength",
+					"armAccuracy": 6,
+					"armAccuracyNotes": "Above average accuracy",
+					"inField": 8,
+					"inFieldNotes": "Good hussle",
+					"outField": 3,
+					"outFieldNotes": "But can't catch pop flys",
+					"baserunMechanics": 8,
+					"baserunMechanicsNotes": "Runs well",
+					"baserunSpeed": 3,
+					"baserunSpeedNotes": "Slow as heck",
+					"division": "aaa",
+					"createdAt": "2017-11-11T02:18:46.000Z",
+					"updatedAt": "2017-11-11T02:18:46.000Z"
+			},
+			{
+					"id": "31825550C68311E7B56957F964D3D47C",
+					"hittingMechanics": 3,
+					"hittingMechanicsNotes": "Very bad mechanics",
+					"batSpeed": 6,
+					"batSpeedNotes": "Good speed",
+					"batContact": null,
+					"batContactNotes": null,
+					"throwingMechanics": null,
+					"throwingMechanicsNotes": null,
+					"armStrength": null,
+					"armStrengthNotes": null,
+					"armAccuracy": null,
+					"armAccuracyNotes": null,
+					"inField": null,
+					"inFieldNotes": null,
+					"outField": null,
+					"outFieldNotes": null,
+					"baserunMechanics": null,
+					"baserunMechanicsNotes": null,
+					"baserunSpeed": null,
+					"baserunSpeedNotes": null,
+					"division": "aaa",
+					"createdAt": "2017-11-11T01:54:03.000Z",
+					"updatedAt": "2017-11-11T01:54:03.000Z"
+			}
+		]
 
 app.get('/api/stats/:playerId', stats.get);
 	// allows a coach to get all the stats he made of one of his players

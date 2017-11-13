@@ -69,7 +69,10 @@ module.exports = {
       .catch(error => res.status(400).json({ message: "Please contact an admin." }));
 	},
   players: (req, res) => {
-    let query, data, pitcher = 0, catcher = 0, coachsKid = 0
+    if (req.user.leagueId)
+      return res.status(400).json({ message: "Only a League Admin can add or change a player"});
+
+    let query, data, pitcher = 0, catcher = 0, coachsKid = 0, requestType = "newPlayer"
     // Expecting all form data.
 		if (
 			!req.body.firstName ||
@@ -87,7 +90,7 @@ module.exports = {
       !req.body.parentLastName ||
       !req.body.teamId
 		)
-			return res.status(400).json({ message: "All form fields are required.", body: req.body });
+			return res.status(400).json({ message: "All form fields are required."});
 
     // Validate email:
 		if (!/[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/.test(req.body.email))
@@ -107,9 +110,11 @@ module.exports = {
 
     // Check if it's updating or if it's creating by seeing if there is an id
     if (req.params.id) {
+      requestType = "updatePlayer"
       query = "UPDATE players SET firstName = ?, lastName = ?, teamNumber = ?, birthday = ?, leagueAge = ?, " +
         "phoneNumber = ?, email = ?, division = ?, pitcher = ?, catcher = ?, coachsKid = ?, parentFirstName = ?, " +
         "parentLastName = ?, updatedAt = NOW(), teamId = UNHEX(?) WHERE id = UNHEX(?) and leagueId = UNHEX(?) LIMIT 1";
+        req.body.id = req.params.id;
       data = [
         req.body.firstName,
         req.body.lastName,
@@ -125,15 +130,16 @@ module.exports = {
         req.body.parentFirstName,
         req.body.parentLastName,
         req.body.teamId,
-        req.params.id,
+        req.body.id,
         req.user.id
       ];
     } else {
       query = "INSERT INTO players SET id = UNHEX(?), leagueId = UNHEX(?), teamId = UNHEX(?), firstName = ?, lastName = ?, " +
         "teamNumber = ?, birthday = ?, leagueAge = ?, phoneNumber = ?, email = ?, division = ?, pitcher = ?, catcher = ?, " +
         "coachsKid = ?, parentFirstName = ?, parentLastName = ?, updatedAt = NOW(), createdAt = NOW()";
+        req.body.id = uuid().replace(/\-/g, "");
       data = [
-        uuid().replace(/\-/g, ""),
+        req.body.id,
         req.user.id,
         req.body.teamId,
         req.body.firstName,
@@ -152,7 +158,10 @@ module.exports = {
       ];
     }
     Promise.using(getConnection(), connection => connection.execute(query, data))
-      .then(() => res.end())
+      .then(() => {
+        req.io.sockets.in(req.user.id).emit(requestType, req.body);
+        res.end()
+      })
       .catch(error => {
         if (error.status)
           return res.status(error.status).json({ message: error.message });
@@ -163,7 +172,10 @@ module.exports = {
     Promise.using(getConnection(), connection => {
       const query = "DELETE FROM players WHERE id = UNHEX(?) AND leagueId = UNHEX(?)";
       return connection.execute(query, [req.params.id, req.user.id]);
-    }).spread(data => res.status(200).json())
+    }).spread(data => {
+      req.io.sockets.in(req.user.id).emit("deletedPlayer", {id:req.params.id});
+      res.end()
+    })
       .catch(error => res.status(400).json({ message: "Please contact an admin." }));
 	}
 }

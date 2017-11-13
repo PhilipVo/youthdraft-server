@@ -10,11 +10,11 @@ module.exports = {
       return res.status(400).json({ message: "Only coaches can see player stats." })
     }
     Promise.using(getConnection(), connection => {
-      const query = "SELECT hittingMechanics, hittingMechanicsNotes, batSpeed, batSpeedNotes, batContact, " +
+      const query = "SELECT HEX(id) as id, hittingMechanics, hittingMechanicsNotes, batSpeed, batSpeedNotes, batContact, " +
         "batContactNotes, throwingMechanics, throwingMechanicsNotes, armStrength, armStrengthNotes, armAccuracy, " +
         "armAccuracyNotes, inField, inFieldNotes, outField, outFieldNotes, baserunMechanics, baserunMechanicsNotes, " +
         "baserunSpeed, baserunSpeedNotes, division, createdAt as createdAt, updatedAt FROM stats WHERE playerId = UNHEX(?) " +
-        "AND coachId = UNHEX(?) ORDER BY createdAt DESC LIMIT 2"
+        "AND coachId = UNHEX(?) ORDER BY createdAt DESC"
       return connection.execute(query, [req.params.playerId, req.user.id]);
     }).spread(data => res.status(200).json(data))
       .catch(error => res.status(400).json({ message: "Please contact an admin." }));
@@ -24,19 +24,19 @@ module.exports = {
       return res.status(400).json({ message: "Only coaches can see player stats." })
     }
     Promise.using(getConnection(), connection => {
-      const query = "SELECT a.firstName as firstName, a.lastName as lastName, a.teamNumber as teamNumber, " +
-        "d.hittingMechanics as hittingMechanics, d.hittingMechanicsNotes as hittingMechanicsNotes, d.batSpeed as batSpeed, " +
-        "d.batSpeedNotes as batSpeedNotes, d.batContact as batContact, d.batContactNotes as batContactNotes, " +
-        "d.throwingMechanics as throwingMechanics, d.throwingMechanicsNotes as throwingMechanicsNotes, " +
+      const query = "SELECT HEX(d.id) as id, HEX(a.id) as playerId, a.firstName as firstName, a.lastName as lastName, " +
+        "a.teamNumber as teamNumber, d.hittingMechanics as hittingMechanics, d.hittingMechanicsNotes as hittingMechanicsNotes, " +
+        "d.batSpeed as batSpeed, d.batSpeedNotes as batSpeedNotes, d.batContact as batContact, d.batContactNotes " +
+        "as batContactNotes, d.throwingMechanics as throwingMechanics, d.throwingMechanicsNotes as throwingMechanicsNotes, " +
         "d.armStrength as armStrength, d.armStrengthNotes as armStrengthNotes, d.armAccuracy as armAccuracy, " +
         "d.armAccuracyNotes as armAccuracyNotes, d.inField as inField, d.inFieldNotes as inFieldNotes, " +
         "d.outField as outField, d.outFieldNotes as outFieldNotes, d.baserunMechanics as baserunMechanics, " +
         "d.baserunMechanicsNotes as baserunMechanicsNotes, d.baserunSpeed as baserunSpeed, " +
         "d.baserunSpeedNotes as baserunSpeedNotes, d.division as division, d.createdAt as createdAt, " +
-        "d.updatedAt as updatedAt FROM players a LEFT JOIN (SELECT b.* FROM stats b WHERE b.id = (SELECT " +
-        "c.createdAt FROM stats c WHERE c.playerId = b.playerId ORDER BY c.createdAt DESC LIMIT 2)) AS d ON " +
-        "a.id = d.playerId WHERE d.coachId = UNHEX(?) AND a.leagueId = UNHEX(?)"
-      return connection.execute(query, [req.user.id, req.user.leagueId]);
+        "d.updatedAt as updatedAt FROM players a INNER JOIN (SELECT b.* FROM stats b WHERE b.coachId = UNHEX(?) " +
+        "AND b.createdAt = (SELECT c.createdAt FROM stats c WHERE c.playerId = b.playerId AND c.coachId = UNHEX(?) " +
+        "ORDER BY c.createdAt DESC LIMIT 1)) AS d ON a.id = d.playerId WHERE a.leagueId = UNHEX(?)"
+      return connection.execute(query, [req.user.id, req.user.id, req.user.leagueId]);
     }).spread(data => res.status(200).json(data))
       .catch(error => res.status(400).json({ message: "Please contact an admin.", error: error }));
 	},

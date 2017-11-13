@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Test</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js"></script>
+    <script type="text/javascript">
+      // set-up a connection between the client and the server
+      var socket = io.connect('http://52.53.223.138/');
+
+      // let's assume that the client page, once rendered, knows what room it wants to join
+      var jwt = "";
+
+      socket.on('connect', function() {
+       // Connected, let's sign-up for to receive messages for this league
+       socket.emit('join-league', jwt);
+      });
+
+      socket.on('success', function(data) {
+       console.log('success:', data);
+      });
+      socket.on('newPlayer', function(data) {
+       console.log('newPlayer:', data);
+      });
+      socket.on('updatePlayer', function(data) {
+       console.log('updatePlayer:', data);
+      });
+      socket.on('deletedPlayer', function(data) {
+       console.log('deletedPlayer:', data);
+      });
+      socket.on('invalidToken', function(data) {
+       console.log('invalidToken:', data);
+      });
+    </script>
+  </head>
+  <body>
+
+  </body>
+</html>
