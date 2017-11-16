@@ -7,10 +7,10 @@ Also all routes will return a 200 code upon success.
 ////////////////////////////////////////////////////////////
 
 app.post('/league/register', league.register);
+	// First emails Chris' email upon completion. Passwords are emailed upon youthdraft validation.
 	Expects:
 		{
 			"email": "moo@moo.com",
-			"password": "Password1", // 8 characters, uppercase and numbers
 			"firstName": "Bob",
 			"lastName": "Ross",
 			"leagueName": "Rivercats",
@@ -37,13 +37,27 @@ app.get('/leagues', league.getAll);
 	  }
 	]
 
-app.post('/league/reset', coaches.reset);
+app.post('/api/league/validate', league.getAll);
+	// for youthdraft to verify a league
+	// sends an email with a temporary password
+	expects: special JWT sent via email link
+	returns: 200 code
+
+app.post('/api/league/reject', league.reject);
+	// for youthdraft to reject and delete a league
+	// sends an email with a rejection letter.
+	expects: special JWT sent via email link
+	returns: 200 code
+
+app.post('/league/reset', league.reset);
 	// Resets a league admin's password and sends it out to the given email address
 	// Also takes a second or two to reply.  Emails seem to take a while.
 	expects:
 		{
 			"email": "mehs@mell.com",
-			"leagueId": "94753D90C12D11E79BB98B11A4F1E340"
+			"leagueName": "Giants", // use the leagueName from the GET /leagues route
+			"city": "Mehi", // use the city from the GET /leagues route
+			"state": "CA" // use the state from the GET /leagues route
 		}
 	returns: 200 code
 
@@ -51,18 +65,13 @@ app.post('/league/login', league.login);
 	expects:
 		{
 			"email": "moo@moo.com",
-			"password": "Password1",
+			"password": "HRh1jQyrNa",
 			"leagueName": "Giants", // use the leagueName from the GET /leagues route
 			"city": "Mehi", // use the city from the GET /leagues route
 			"state": "CA" // use the state from the GET /leagues route
 		}
 	returns: JWT of league Admin
 		"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE1MDk3NzQ5NDIsImlkIjoiQjIxODA2OTBDMTIxMTFFN0IxRTU5M0YwMzRFQjExMEEifQ.Q7VAHt44BMy2NY9sihd-kHNzxDcsk2hAz6AkqLMkaLM"
-
-app.post('/api/league/create', league.createLeague);
-	// tells the server that the league has been finished creating and is now being used
-	expects: JWT of a league admin in the HTML header
-	returns: 200 code.
 
 app.get('/api/league', league.get);
 	// to get all the info connected to the league account
@@ -158,7 +167,7 @@ app.post('/api/teams', teams.teams);
 	expects: JWT of league admin
 		{
 			"name": "Astros niners",
-			"division": "AAA"
+			"division": "AAA" // get from /divisions
 		}
 	returns: 200 code
 
@@ -167,7 +176,7 @@ app.post('/api/teams/:id', teams.teams);
 	expects: JWT of league admin
 		{
 			"name": "Astros niners",
-			"division": "AAA"
+			"division": "AAA" // get from /divisions
 		}
 	returns: 200 code
 
@@ -177,18 +186,18 @@ app.get('/api/teams', teams.getAll);
 	returns:
 		[
 			{
-					"id": "73DFFB60C1F011E7BC8C7F70B6BAE7A5",
-					"name": "Astros",
-					"division": "AAA",
-					"createdAt": "2017-11-05T06:13:33.000Z",
-					"updatedAt": "2017-11-05T06:13:33.000Z"
+					"id": "162D4DF0CAA211E79126BBB330C2AEAD",
+					"name": "Astros niners",
+					"division": "aaa", // get from /divisions
+					"createdAt": "2017-11-16T07:45:16.000Z",
+					"updatedAt": "2017-11-16T07:45:16.000Z"
 			},
 			{
-					"id": "8167AF90C1EF11E79F3C4B7956E63DC1",
-					"name": "Astros niners",
-					"division": "AAA",
-					"createdAt": "2017-11-05T06:06:47.000Z",
-					"updatedAt": "2017-11-05T06:10:45.000Z"
+					"id": "24C2AC20CAA211E79126BBB330C2AEAD",
+					"name": "Athletics",
+					"division": "aa", // get from /divisions
+					"createdAt": "2017-11-16T07:45:40.000Z",
+					"updatedAt": "2017-11-16T07:45:40.000Z"
 			}
 		]
 app.delete('/api/teams/:id', teams.delete);
@@ -196,7 +205,7 @@ app.delete('/api/teams/:id', teams.delete);
 	expects: JWT of league admin
 		{
 			"name": "Astros niners",
-			"division": "AAA"
+			"division": "AAA" // get from /divisions
 		}
 	returns: 200 code
 
@@ -211,17 +220,22 @@ app.post('/api/coaches/upload', coaches.upload);
 
 // For single
 app.post('/coaches/register', coaches.register);
-	// Accepts passwords for now, will change to emailed password upon league validation in the future
+	// Passwords are emailed upon league validation
 	expects:
 		{
 			"email": "mehs@mell.com",
 			"firstName":"Mahs",
 			"lastName": "Bash",
 			"phoneNumber": "918-281-4832",
-			"division": "AAA",
+			"division": "AAA", // get from /divisions
 			"city": "Dallas",
 			"state": "Texas",
-			"leagueId":"94753D90C12D11E79BB98B11A4F1E340"
+			"pastDivisions":["AAA", "AA", "A"],
+      "yearsExperience": 0,
+			"pastLeague": "Miami Gophers"
+			"leagueName": "Giants", // use the leagueName from the GET /leagues route
+			"leagueCity": "Mehi", // use the city from the GET /leagues route
+			"leagueState": "CA" // use the state from the GET /leagues route
 		}
 	returns: 200 code
 
@@ -235,7 +249,7 @@ app.get('/api/coaches/all', coaches.getAll);
 					"firstName": "Mahs",
 					"lastName": "Bash",
 					"email": "mehs@mell.com",
-					"division": "AAA",
+					"division": "AAA", // get from /divisions
 					"phoneNumber": "918-281-4832",
 					"createdAt": "2017-11-06T04:51:03.000Z",
 					"updatedAt": "2017-11-06T04:51:03.000Z",
@@ -246,7 +260,7 @@ app.get('/api/coaches/all', coaches.getAll);
 					"firstName": "Mell",
 					"lastName": "Bash",
 					"email": "mel@mell.com",
-					"division": "Major",
+					"division": "Major", // get from /divisions
 					"phoneNumber": "918-281-4832",
 					"createdAt": "2017-11-06T04:49:59.000Z",
 					"updatedAt": "2017-11-06T04:49:59.000Z",
@@ -275,8 +289,8 @@ app.post('/coaches/login', coaches.login);
 	// Can only login if coach is validated
 	expects:
 		{
-			"email": "mehs@mell.com",
-			"password": "3cJZftDdkq",
+			"email": "Gosh@gmail.com",
+			"password": "S7aY8kcSSp",
 			"leagueName": "Giants", // use the leagueName from the GET /leagues route
 			"city": "Mehi", // use the city from the GET /leagues route
 			"state": "CA" // use the state from the GET /leagues route
@@ -293,7 +307,7 @@ app.put('/api/coaches/:id', coaches.coaches);
 			"firstName":"Mas",
 			"lastName": "Bah",
 			"phoneNumber": "918-281-4832",
-			"division": "AA",
+			"division": "AA", // get from /divisions
 			"city": "Dallas",
 			"state": "Texas"
 		}
@@ -308,7 +322,7 @@ app.post('/api/coaches', coaches.createCoaches);
 			"firstName":"Mas",
 			"lastName": "Bah",
 			"phoneNumber": "918-281-4832",
-			"division": "AA",
+			"division": "AA", // get from /divisions
 			"city": "Dallas",
 			"state": "Texas"
 		}
@@ -333,7 +347,7 @@ app.get('/api/coaches', coaches.get);
 			"firstName": "Moo",
 			"lastName": "Cow",
 			"email": "mootest21@gmail.com",
-			"division": "AAA",
+			"division": "AAA", // get from /divisions
 			"phoneNumber": "918-281-4832",
 			"createdAt": "2017-11-06T07:13:43.000Z",
 			"updatedAt": "2017-11-06T07:27:39.000Z",
@@ -360,14 +374,14 @@ app.post('/api/players', players.players);
 	// For the league admin to create a player
 	expects: JWT of a league admin
 		{
-			"firstName": "Grail",
+			"firstName": "Gray",
 			"lastName": "Sue",
 			"teamNumber": "15",
 			"birthday": "2001-3-25",
 			"leagueAge": "16",
 			"phoneNumber": "932-843-2394",
 			"email": "tom@tom.com",
-			"division": "AAA",
+			"division": "AAA", // get from /divisions
 			"pitcher": "true",
 			"catcher": "false",
 			"coachsKid": "false",
@@ -389,7 +403,7 @@ app.put('/api/players/:id', players.players);
 			"leagueAge": "16",
 			"phoneNumber": "932-843-2394",
 			"email": "tom@tom.com",
-			"division": "AAA",
+			"division": "AAA", // get from /divisions
 			"pitcher": 1,
 			"catcher": 0,
 			"coachsKid": 0,
@@ -413,7 +427,7 @@ app.get('/api/players', players.getAll);
         "leagueAge": 16,
         "phoneNumber": "932-843-2394",
         "email": "tom@tom.com",
-        "division": "AAA",  // capitalization does not matter
+        "division": "AAA",   // get from /divisions
         "pitcher": 1,
         "catcher": 0,
         "coachsKid": 0,
@@ -433,7 +447,7 @@ app.get('/api/players', players.getAll);
         "leagueAge": 15,
         "phoneNumber": "932-843-2394",
         "email": "tom@tom.com",
-        "division": "AA",  // capitalization does not matter
+        "division": "AA",   // get from /divisions
         "pitcher": 1,
         "catcher": 0,
         "coachsKid": 0,
@@ -461,7 +475,7 @@ app.get('/api/players/get-players-for-division/:division', players.getDivision);
 					"leagueAge": 16,
 					"phoneNumber": "932-843-2394",
 					"email": "tom@tom.com",
-					"division": "AAA",  // capitalization does not matter
+					"division": "AAA",   // get from /divisions
 					"pitcher": 1,
 					"catcher": 0,
 					"coachsKid": 0,
@@ -487,6 +501,7 @@ app.post('/api/formulas', formulas.formulas);
 	// allows a coach to create a formula
 	expects: any combination of the following form parameters and coach's JWT
 		{
+			"title": "Pitchers",
 			"hittingMechanics": 3,
 			"batSpeed": 6,
 			"batContact": 8,
@@ -506,6 +521,7 @@ app.put('/api/formulas/:id', formulas.formulas);
 	// :id expects the id of the formula that needs editing
 	expects: any combination of the following form parameters and coach's JWT
 		{
+			"title": "PitchersBetter",
 			"hittingMechanics": 3,
 			"batSpeed": 6,
 			"batContact": 8,
@@ -591,7 +607,7 @@ app.post('/api/stats', stats.stats);
 			"baserunMechanicsNotes": "Runs well",
 			"baserunSpeed": 3,
 			"baserunSpeedNotes": "Slow as heck",
-			"division": "AAA",										 //not case sensitive
+			"division": "AAA",										  // get from /divisions
 			"playerId": "A464C7E0C2CA11E7B03EEDE8E1EB4852",
 			"teamId": "73DFFB60C1F011E7BC8C7F70B6BAE7A5"
 		}
@@ -623,7 +639,7 @@ app.put('/api/stats/:id', stats.stats);
 			"baserunMechanicsNotes": "Runs well",
 			"baserunSpeed": 3,
 			"baserunSpeedNotes": "Slow as heck",
-			"division" = "AAA" //not case sensitive
+			"division" = "AAA"              // get from /divisions
 		}
 	returns: 200 code
 
@@ -633,7 +649,11 @@ app.get('/api/stats', stats.getAll);
 	returns: an array of objects
 		[
 			{
-					"id": "98B601D0C68E11E7827E5D86696CCCC9",
+					"id": "32B08840CAB911E7B15427D5E92C63D5",
+					"playerId": "B859BE70CAB511E7AB08819B83BE0AA5",
+					"firstName": "Gray",
+					"lastName": "Sue",
+					"teamNumber": "15",
 					"hittingMechanics": 3,
 					"hittingMechanicsNotes": "Very bad mechanics",
 					"batSpeed": 6,
@@ -641,58 +661,6 @@ app.get('/api/stats', stats.getAll);
 					"batContact": 8,
 					"batContactNotes": "Very Good contact somehow",
 					"throwingMechanics": 3,
-					"throwingMechanicsNotes": "Bad mechanics",
-					"armStrength": 5,
-					"armStrengthNotes": "Decent arm strength",
-					"armAccuracy": 6,
-					"armAccuracyNotes": "Above average accuracy",
-					"inField": 8,
-					"inFieldNotes": null,
-					"outField": null,
-					"outFieldNotes": null,
-					"baserunMechanics": null,
-					"baserunMechanicsNotes": null,
-					"baserunSpeed": null,
-					"baserunSpeedNotes": null,
-					"division": "aaa",
-					"createdAt": "2017-11-11T03:15:40.000Z",
-					"updatedAt": "2017-11-11T03:15:40.000Z"
-			},
-			{
-					"id": "A5DB27D0C68611E794717D7F9415A32A",
-					"hittingMechanics": 3,
-					"hittingMechanicsNotes": "Very bad mechanics",
-					"batSpeed": 6,
-					"batSpeedNotes": "Good speed",
-					"batContact": 8,
-					"batContactNotes": "Very Good contact somehow",
-					"throwingMechanics": 3,
-					"throwingMechanicsNotes": "Bad mechanics",
-					"armStrength": 5,
-					"armStrengthNotes": "Decent arm strength",
-					"armAccuracy": 6,
-					"armAccuracyNotes": "Above average accuracy",
-					"inField": 8,
-					"inFieldNotes": "Good hussle",
-					"outField": 3,
-					"outFieldNotes": "But can't catch pop flys",
-					"baserunMechanics": 8,
-					"baserunMechanicsNotes": "Runs well",
-					"baserunSpeed": 3,
-					"baserunSpeedNotes": "Slow as heck",
-					"division": "aaa",
-					"createdAt": "2017-11-11T02:18:46.000Z",
-					"updatedAt": "2017-11-11T02:18:46.000Z"
-			},
-			{
-					"id": "31825550C68311E7B56957F964D3D47C",
-					"hittingMechanics": 3,
-					"hittingMechanicsNotes": "Very bad mechanics",
-					"batSpeed": 6,
-					"batSpeedNotes": "Good speed",
-					"batContact": null,
-					"batContactNotes": null,
-					"throwingMechanics": null,
 					"throwingMechanicsNotes": null,
 					"armStrength": null,
 					"armStrengthNotes": null,
@@ -706,9 +674,39 @@ app.get('/api/stats', stats.getAll);
 					"baserunMechanicsNotes": null,
 					"baserunSpeed": null,
 					"baserunSpeedNotes": null,
-					"division": "aaa",
-					"createdAt": "2017-11-11T01:54:03.000Z",
-					"updatedAt": "2017-11-11T01:54:03.000Z"
+					"division": "aaa",        // get from /divisions
+					"createdAt": "2017-11-16T10:30:42.000Z",
+					"updatedAt": "2017-11-16T10:30:42.000Z"
+			},
+			{
+					"id": "9772E7A0CAB911E7B15427D5E92C63D5",
+					"playerId": "D51D0670CAB511E7AB08819B83BE0AA5",
+					"firstName": "Bob",
+					"lastName": "White",
+					"teamNumber": "12",
+					"hittingMechanics": 5,
+					"hittingMechanicsNotes": "Okay mechanics",
+					"batSpeed": 9,
+					"batSpeedNotes": "Amazing speed",
+					"batContact": 7,
+					"batContactNotes": "Pretty good contact",
+					"throwingMechanics": 7,
+					"throwingMechanicsNotes": "Could be a decent pitcher",
+					"armStrength": 8,
+					"armStrengthNotes": "Very nice arm strength",
+					"armAccuracy": 6,
+					"armAccuracyNotes": "Above average accuracy",
+					"inField": 8,
+					"inFieldNotes": "Good hussle",
+					"outField": 8,
+					"outFieldNotes": "Very good awareness of the feild",
+					"baserunMechanics": 8,
+					"baserunMechanicsNotes": "Runs well",
+					"baserunSpeed": 7,
+					"baserunSpeedNotes": "Pretty fast",
+					"division": "aaa",            // get from /divisions
+					"createdAt": "2017-11-16T10:33:31.000Z",
+					"updatedAt": "2017-11-16T10:33:31.000Z"
 			}
 		]
 
@@ -775,3 +773,12 @@ app.delete('/api/stats/:id', stats.delete);
 	// :id expects the id of the formula that the coach wants to delete
 	expects: JWT of coach
 	returns: 200 code
+
+
+////////////////////////////////////////////////////////////
+//                    Divisions Routes                    //
+////////////////////////////////////////////////////////////
+
+app.get('/divisions', divisions.getAll)
+	// Gets all the possible divisions that are available.
+	returns:

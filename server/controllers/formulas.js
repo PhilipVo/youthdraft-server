@@ -10,7 +10,7 @@ module.exports = {
       return res.status(400).json({ message: "Only coaches can view formulas." })
     }
     Promise.using(getConnection(), connection => {
-      const query = "SELECT HEX(id) as id, hittingMechanics, batSpeed, batContact, throwingMechanics, armStrength, " +
+      const query = "SELECT HEX(id) as id, title, hittingMechanics, batSpeed, batContact, throwingMechanics, armStrength, " +
       "armAccuracy, inField, outField, baserunMechanics, baserunSpeed, createdAt, updatedAt FROM formulas WHERE " +
       "coachId = UNHEX(?) AND leagueId = UNHEX(?)";
       return connection.execute(query, [req.user.id, req.user.leagueId]);
@@ -35,7 +35,15 @@ module.exports = {
         req.user.leagueId
       ];
     }
+    if (req.body.title) {
+      addedQuery = true;
+      query2 += " title = ?";
+      data2.push(req.body.title);
+    }
     if (req.body.hittingMechanics) {
+      if (addedQuery) {
+        query2 += ","
+      }
       addedQuery = true;
       query2 += " hittingMechanics = ?";
       data2.push(req.body.hittingMechanics);

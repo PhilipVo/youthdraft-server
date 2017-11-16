@@ -4,7 +4,8 @@ const 	league 					= require('../controllers/league.js'),
 				tryouts				 	= require('../controllers/tryouts.js'),
 				teams					 	= require('../controllers/teams.js'),
 				formulas			 	= require('../controllers/formulas.js'),
-				stats					 	= require('../controllers/stats.js');
+				stats					 	= require('../controllers/stats.js'),
+				divisions				= require('../controllers/divisions.js');
 
 
 
@@ -17,9 +18,10 @@ module.exports = function (app) {
 
 	app.post('/league/register', league.register); // returns JWT for the league admin
 	app.get('/leagues', league.getAll); // to get all the leagues for selecting from the drop down, contains, league name, city, state, and league id
+	app.post('/api/league/validate', league.validate); // for youthdraft to verify a league
+	app.post('/api/league/reject', league.reject); // for youthdraft to unverify and delete a league
 	app.post('/league/login', league.login); // returns JWT for the league admin
 	app.post('/league/reset', league.reset); // reset the password for the league admin
-	app.post('/api/league/create', league.create); // tells the server that the league has been finished creating and is now being used
 	app.get('/api/league', league.get); // to get all the info connected to the league account
 	app.put('/api/league', league.update); // update the league admin profile
 	app.put('/api/league/password', league.password); // update the league admin password
@@ -93,5 +95,11 @@ module.exports = function (app) {
 	app.get('/api/stats', stats.getAll);
 	app.get('/api/stats/:playerId', stats.get);
 	app.delete('/api/stats/:id', stats.delete);
+
+	////////////////////////////////////////////////////////////
+	//                    Divisions Routes                    //
+	////////////////////////////////////////////////////////////
+
+	app.get('/divisions', divisions.getAll)
 
 }

@@ -31,6 +31,7 @@ module.exports = {
         if (jsonArray.length > 0) {
           const query = "INSERT INTO coaches (firstName, lastName, division, email, phoneNumber, " +
             "id, leagueId, createdAt, updatedAt) VALUES ?"
+          console.log(jsonArray);
           return connection.query(query, [jsonArray]);
         }
         else return Promise.resolve();
@@ -66,7 +67,7 @@ module.exports = {
 	},
   reset: (req, res) => {
     // Validate reset data:
-		if (!req.body.email || !req.body.leagueId)
+		if (!req.body.email  || !req.body.leagueName || !req.body.city || !req.body.state)
 			return res.status(400).json({ message: "All form fields are required." });
 
     // Validate email:
@@ -78,15 +79,16 @@ module.exports = {
     bcrypt.genSaltAsync(10)
 			.then(salt => bcrypt.hashAsync(password, salt))
 			.then(hash => Promise.using(getConnection(), connection => {
-        const query = "UPDATE coaches SET password = ?, updatedAt = NOW() WHERE email = ? " +
-        "AND leagueId = UNHEX(?) AND validated = 1 LIMIT 1";
-        return connection.execute(query, [hash, req.body.email, req.body.leagueId]);
+        const query = "UPDATE coaches SET password = ?, updatedAt = NOW() WHERE email = ? AND leagueId = (SELECT id " +
+          "FROM leagues WHERE leagueName = ? AND city = ? AND state = ? LIMIT 1) AND validated = 1 LIMIT 1";
+        return connection.execute(query, [hash, req.body.email, req.body.leagueName, req.body.city, req.body.state]);
       }))
       .spread(data => Promise.using(getConnection(), connection => {
         if (data.length == 0)
           throw { status: 400, message: "Please wait for your account to be validated before trying to reset your password." };
-        const query = "SELECT * FROM coaches WHERE email = ? AND leagueId = UNHEX(?) LIMIT 1";
-        return connection.execute(query, [req.body.email, req.body.leagueId]);
+        const query = "SELECT * FROM coaches WHERE email = ? AND leagueId =  (SELECT id FROM leagues WHERE leagueName = ? " +
+          "AND city = ? AND state = ? LIMIT 1) LIMIT 1";
+        return connection.execute(query, [req.body.email, req.body.leagueName, req.body.city, req.body.state]);
       }))
       .spread(data => {
         nodeMailer.mailOptions.to = req.body.email
@@ -104,11 +106,11 @@ module.exports = {
   coaches: (req, res) => {
     // Expecting all form data.
 		if (
-			!req.body.email ||
+			(!req.body.email && req.user.league) ||
 			!req.body.firstName ||
 			!req.body.lastName ||
 			!req.body.phoneNumber ||
-      !req.body.division ||
+      (!req.body.division && !req.user.league)||
 			!req.body.city ||
       !req.body.state
 		)
@@ -120,24 +122,27 @@ module.exports = {
 
     req.body.division = req.body.division.toLowerCase();
 
-    const query = "UPDATE coaches SET email = ?, firstName = ?, lastName = ?, phoneNumber = ?, division = ?, " +
-      "city = ?, state = ?, updatedAt = NOW() WHERE id = UNHEX(?) and leagueId = UNHEX(?) LIMIT 1";
+    let query = "UPDATE coaches SET firstName = ?, lastName = ?, phoneNumber = ?, city = ?, state = ?, ";
+
     const data = [
-      req.body.email,
       req.body.firstName,
       req.body.lastName,
       req.body.phoneNumber,
-      req.body.division,
       req.body.city,
       req.body.state
     ];
     if (!req.user.league) {
+      query += "division = ?, "
+      data.push(req.body.division);
       data.push(req.params.id);
       data.push(req.user.id);
     } else {
+      query += "email = ?, "
+      data.push(req.body.email);
       data.push(req.user.id);
       data.push(req.user.leagueId);
     }
+    query += "updatedAt = NOW() WHERE id = UNHEX(?) and leagueId = UNHEX(?) LIMIT 1";
     console.log(data);
     Promise.using(getConnection(), connection => connection.execute(query, data))
     .then(() => res.end())
@@ -200,6 +205,8 @@ module.exports = {
       });
   },
   register: (req, res) => {
+    let query2;
+    const data2 = [];
     // Expecting all form data.
 		if (
 			!req.body.email ||
@@ -209,7 +216,11 @@ module.exports = {
       !req.body.division ||
 			!req.body.city ||
       !req.body.state ||
-      !req.body.leagueId
+      (!req.body.yearsExperience && req.body.yearsExperience != 0) ||
+      !req.body.pastDivisions ||
+      !req.body.leagueName ||
+      !req.body.leagueCity ||
+      !req.body.leagueState
 		)
 			return res.status(400).json({ message: "All form fields are required." });
 
@@ -223,7 +234,8 @@ module.exports = {
 
     //Setup the query
     const query = "INSERT INTO coaches SET id = UNHEX(?), email = ?, firstName = ?, lastName = ?, phoneNumber = ?, " +
-      "division = ?, city = ?, state = ?, validated = 0, updatedAt = NOW(), createdAt = NOW(), leagueId = UNHEX(?)";
+      "division = ?, city = ?, state = ?, yearsExperience = ?, pastLeague = ?, validated = 0, updatedAt = NOW(), " +
+      "createdAt = NOW(), leagueId = (SELECT id FROM leagues WHERE leagueName = ? AND city = ? AND state = ? LIMIT 1)";
     const data = [
       id,
       req.body.email,
@@ -233,15 +245,34 @@ module.exports = {
       req.body.division,
       req.body.city,
       req.body.state,
-      req.body.leagueId
+      req.body.yearsExperience,
+      req.body.pastLeague,
+      req.body.leagueName,
+      req.body.leagueCity,
+      req.body.leagueState
     ];
 
+    const tempData = req.body.pastDivisions
+    const tempLength = tempData.length
+    // Make sure the amount of data being inserted is not ridiculous
+    if (tempLength > 0 && tempLength < 10 ) {
+      query2 = "INSERT INTO coachPastDivisions (coachId, division, createdAt, updatedAt) VALUES ?"
+      for (let i = 0; i < tempLength; i++) {
+        data2.push([new Buffer(id, "hex"), tempData[i], "NOW()", "NOW()"])
+      }
+    }
+
     Promise.using(getConnection(), connection => connection.execute(query, data))
+    .then(() => {
+      if (query2)
+      console.log(data2);
+        return Promise.using(getConnection(), connection => connection.query(query2, [data2]));
+    })
     .then(() => res.end())
     .catch(error => {
 			if (error["code"] == "ER_DUP_ENTRY")
 				return res.status(400).json({ message: "Email already associated with this league." });
-			return res.status(400).json({ message: "Please contact an admin."});
+			return res.status(400).json({ message: "Please contact an admin.", error:error});
 		});
 	},
   login: (req, res) => {
@@ -256,8 +287,8 @@ module.exports = {
 		Promise.using(getConnection(), connection => {
 			// Get user by email:
 			const query = "SELECT HEX(b.id) AS id, b.email as email, b.password as password, b.validated as validated, " +
-      "HEX(b.leagueId) as leagueId FROM leagues as a INNER JOIN coaches as b ON a.id = b.leagueId WHERE b.email = ? " +
-      "AND a.leagueName = ? AND a.city = ? AND a.state = ? LIMIT 1";
+        "HEX(b.leagueId) as leagueId FROM leagues as a INNER JOIN coaches as b ON a.id = b.leagueId WHERE b.email = ? " +
+        "AND a.leagueName = ? AND a.city = ? AND a.state = ? LIMIT 1";
 			return connection.execute(query, [req.body.email, req.body.leagueName, req.body.city, req.body.state]);
 		}).spread(data => {
 			if (data.length == 0)
@@ -281,7 +312,7 @@ module.exports = {
 		}).catch(error => {
 			if (error.status)
 				return res.status(error.status).json({ message: error.message });
-			return res.status(400).json({ message: "Please contact an admin."});
+			return res.status(400).json({ message: "Please contact an admin.", error:error});
 		});
 	},
   password: (req, res) => {

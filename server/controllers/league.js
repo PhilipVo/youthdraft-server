@@ -5,18 +5,12 @@ const uuid = require('uuid/v1');
 const generator = require('generate-password');
 
 const jwtKey = require("../../keys/keys").jwtKey;
+const serverKeys = require("../../keys/keys");
 const getConnection = require("../config/mysql");
 const nodeMailer = require('../config/nodemailer');
 
 
 module.exports = {
-  create: (req, res) => {
-    Promise.using(getConnection(), connection => {
-      const query = "UPDATE leagues SET isLive = 1 , updatedAt = NOW() WHERE id = UNHEX(?) LIMIT 1";
-      return connection.execute(query, [req.user.id]);
-    }).spread(data => res.status(200).json())
-      .catch(error => res.status(400).json({ message: "Please contact an admin." }));
-	},
   get: (req, res) => {
     Promise.using(getConnection(), connection => {
       const query = "SELECT email, firstName, lastName, leagueName, " +
@@ -113,7 +107,7 @@ module.exports = {
 	},
   reset: (req, res) => {
     // Validate reset data:
-    if (!req.body.email || !req.body.leagueId)
+    if (!req.body.email || !req.body.leagueName || !req.body.city || !req.body.state)
       return res.status(400).json({ message: "All form fields are required." });
 
     // Validate email:
@@ -126,14 +120,14 @@ module.exports = {
       .then(salt => bcrypt.hashAsync(password, salt))
       .then(hash => Promise.using(getConnection(), connection => {
         const query = "UPDATE leagues SET password = ?, updatedAt = NOW() WHERE email = ? " +
-        "AND id = UNHEX(?) LIMIT 1";
-        return connection.execute(query, [hash, req.body.email, req.body.leagueId]);
+        "AND leagueName = ? AND city = ? AND state = ? LIMIT 1";
+        return connection.execute(query, [hash, req.body.email, req.body.leagueName, req.body.city, req.body.state]);
       }))
       .spread(data => Promise.using(getConnection(), connection => {
         if (data.length == 0)
           return res.status(200).json()
-        const query = "SELECT * FROM leagues WHERE email = ? AND id = UNHEX(?) LIMIT 1";
-        return connection.execute(query, [req.body.email, req.body.leagueId]);
+        const query = "SELECT * FROM leagues WHERE email = ? AND leagueName = ? AND city = ? AND state = ? LIMIT 1";
+        return connection.execute(query, [req.body.email, req.body.leagueName, req.body.city, req.body.state]);
       }))
       .spread(data => {
         nodeMailer.mailOptions.to = req.body.email
@@ -159,12 +153,15 @@ module.exports = {
 
 		Promise.using(getConnection(), connection => {
 			// Get user by email:
-			const query = "SELECT HEX(id) AS id, email, password FROM leagues WHERE email = ? AND leagueName = ? " +
+			const query = "SELECT HEX(id) AS id, email, password, isLive FROM leagues WHERE email = ? AND leagueName = ? " +
       "AND city = ? AND state = ? LIMIT 1";
 			return connection.execute(query, [req.body.email, req.body.leagueName, req.body.city, req.body.state]);
 		}).spread(data => {
 			if (data.length == 0)
 				throw { status: 400, message: "Email/password/league name does not match." };
+
+      if (data[0].isLive != 1)
+        throw {  status: 400, message: "Account needs to be validated by the YouthDraft adminstration." }
 
 			// Check valid password:
 			return [bcrypt.compareAsync(req.body.password, data[0].password), data];
@@ -187,7 +184,6 @@ module.exports = {
 		// Expecting all form data.
 		if (
 			!req.body.email ||
-			!req.body.password ||
 			!req.body.firstName ||
 			!req.body.lastName ||
 			!req.body.leagueName ||
@@ -205,32 +201,86 @@ module.exports = {
 		if (!/[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/.test(req.body.email))
 			return res.status(400).json({ message: "Invalid email. Email format should be: email@mailserver.com." });
 
-		// Validate password:
-		if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d$@$!%*?&](?=.{7,})/.test(req.body.password))
-			return res.status(400).json({
-				message: "Password must be at least 8 characters long and " +
-				"have a lowercase letter, an uppercase letter, and a number."
-			});
 		const id = uuid().replace(/\-/g, "");
 
-		bcrypt.genSaltAsync(10)
-			.then(salt => bcrypt.hashAsync(req.body.password, salt))
+		Promise.using(getConnection(), connection => {
+			const data = [id, req.body.email, req.body.firstName, req.body.lastName, req.body.leagueName, req.body.phoneNumber, req.body.city, req.body.state];
+			const query = "INSERT INTO leagues SET id = UNHEX(?), email = ?, firstName = ?, lastName = ?, isLive = 0, " +
+				"leagueName = ?, phoneNumber = ?, city = ?, state = ?, createdAt = NOW(), updatedAt = NOW()";
+			return connection.execute(query, data);
+		}).spread(data => {
+      const youthDraftToken = jwt.sign({
+				id: id,
+        youthdraftKey: serverKeys.youthdraftKey,
+				iat: Math.floor(Date.now() / 1000) - 30
+			}, jwtKey);
+      // url/accept and url/decline
+      nodeMailer.mailOptions.to = serverKeys.youthdraftEmail
+      nodeMailer.mailOptions.subject = "Please verify this team"
+      nodeMailer.mailOptions.html = "This is the team: " + req.body.leagueName + " in " + req.body.city + ", " + req.body.state + ", JWT: " + youthDraftToken
+      return nodeMailer.transporter.sendMail(nodeMailer.mailOptions)
+		}).catch(error => {
+			if (error["code"] == "ER_DUP_ENTRY")
+				return res.status(400).json({ message: "Email already associated with this league." });
+			return res.status(400).json({ message: "Please contact an admin." });
+		});
+	},
+  validate: (req, res) => {
+    if (!req.user.youthdraftKey || req.user.youthdraftKey != serverKeys.youthdraftKey)
+      return res.status(400).json({ message: "This link is not valid." });
+    const password = generator.generate({ length: 10, strict: true, numbers: true  });
+    bcrypt.genSaltAsync(10)
+			.then(salt => bcrypt.hashAsync(password, salt))
 			.then(hash => Promise.using(getConnection(), connection => {
-				const data = [id, req.body.email, hash, req.body.firstName, req.body.lastName, req.body.leagueName, req.body.phoneNumber, req.body.city, req.body.state];
-				const query = "INSERT INTO leagues SET id = UNHEX(?), email = ?, password = ?, firstName = ?, " +
-					"lastName = ?, leagueName = ?, phoneNumber = ?, city = ?, state = ?, createdAt = NOW(), updatedAt = NOW()";
-				return connection.execute(query, data);
-			})).spread(data => {
-				const youthDraftToken = jwt.sign({
-					id: id,
-          user: 'league',
-					iat: Math.floor(Date.now() / 1000) - 30
-				}, jwtKey);
-				return res.status(200).json(youthDraftToken);
-			}).catch(error => {
-				if (error["code"] == "ER_DUP_ENTRY")
-					return res.status(400).json({ message: "Email already associated with this league." });
-				return res.status(400).json({ message: "Please contact an admin." });
-			});
-	}
+        const query = "UPDATE leagues SET isLive = 1 , password = ?, updatedAt = NOW() WHERE id = UNHEX(?) " +
+        "AND isLive != 1 LIMIT 1";
+        return connection.execute(query, [hash, req.user.id]);
+      }))
+      .spread(data => Promise.using(getConnection(), connection => {
+        if (data.affectedRows == 0)
+          throw { status: 400, message: "This league has already been validated." };
+
+        const query = "SELECT * FROM leagues WHERE id = UNHEX(?) LIMIT 1";
+        return connection.execute(query, [req.user.id]);
+      }))
+      .spread(data => {
+        nodeMailer.mailOptions.to = data[0].email
+        nodeMailer.mailOptions.subject = "Your account has been validated"
+        nodeMailer.mailOptions.html = "<p>" + data[0].firstName + " " + data[0].lastName + " here is your password: " + password + "</p>"
+        return nodeMailer.transporter.sendMail(nodeMailer.mailOptions)
+      })
+      .then(info => res.status(200).json())
+      .catch(error => {
+        if (error.status)
+          return res.status(error.status).json({ message: error.message });
+        return res.status(400).json({ message: "Please contact an admin." });
+      });
+  },
+  reject: (req, res) => {
+    if (!req.user.youthdraftKey || req.user.youthdraftKey != serverKeys.youthdraftKey)
+      return res.status(400).json({ message: "This link is not valid." });
+    Promise.using(getConnection(), connection => {
+      const query = "SELECT * FROM leagues WHERE id = UNHEX(?) LIMIT 1";
+      return connection.execute(query, [req.user.id]);
+    })
+    .spread(data => Promise.using(getConnection(), connection => {
+      if (data.affectedRows == 0)
+        throw { status: 400, message: "This coach has already been validated." };
+
+      const query = "DELETE FROM leagues WHERE id = UNHEX(?) AND isLive != 1 LIMIT 1";
+      return [connection.execute(query, [req.user.id]), data];
+    }))
+    .spread((dataDel, data) => {
+      nodeMailer.mailOptions.to = data[0].email
+      nodeMailer.mailOptions.subject = "Your account has been rejected"
+      nodeMailer.mailOptions.html = "<p>Your League has been rejected</p>"
+      return nodeMailer.transporter.sendMail(nodeMailer.mailOptions)
+    })
+    .then(info => res.status(200).json())
+    .catch(error => {
+      if (error.status)
+        return res.status(error.status).json({ message: error.message });
+      return res.status(400).json({ message: "Please contact an admin." });
+    });
+  }
 }
