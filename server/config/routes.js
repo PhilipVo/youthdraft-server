@@ -5,10 +5,8 @@ const 	league 					= require('../controllers/league.js'),
 				teams					 	= require('../controllers/teams.js'),
 				formulas			 	= require('../controllers/formulas.js'),
 				stats					 	= require('../controllers/stats.js'),
-				divisions				= require('../controllers/divisions.js');
-
-
-
+				divisions				= require('../controllers/divisions.js'),
+				upload					= require('./multer.js');
 
 module.exports = function (app) {
 
@@ -38,7 +36,7 @@ module.exports = function (app) {
 	////////////////////////////////////////////////////////////
 
 	// For bulk
-	app.post('/api/teams/upload', teams.upload);
+	app.post('/api/teams/upload', upload.single('teams'), teams.upload);
 	// For single
 	app.post('/api/teams/:id', teams.teams);
 	app.post('/api/teams', teams.teams);
@@ -50,7 +48,7 @@ module.exports = function (app) {
 	////////////////////////////////////////////////////////////
 
 	// For bulk
-	app.post('/api/coaches/upload', coaches.upload);
+	app.post('/api/coaches/upload', upload.single('coaches'), coaches.upload);
 	// For single
 	app.post('/coaches/register', coaches.register);
 	app.get('/api/coaches/all', coaches.getAll);
@@ -68,7 +66,7 @@ module.exports = function (app) {
 	////////////////////////////////////////////////////////////
 
 	// For bulk
-	app.post('/api/players/upload', players.upload);
+	app.post('/api/players/upload', upload.single('players'), players.upload);
 	// For single
 	app.put('/api/players/:id', players.players);
 	app.post('/api/players', players.players);

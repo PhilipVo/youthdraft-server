@@ -32,3 +32,9 @@ app.use(bp.json());
 app.use('/api', expressJWT({ secret: jwtKey }));
 
 const routes = require('./server/config/routes.js')(app);
+
+app.use(function (err, req, res, next) {
+  res.status(err.status || 500);
+  res.json({ message: err });
+  next(err)
+})

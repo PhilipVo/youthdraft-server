@@ -4,10 +4,9 @@ const xlsxConverter = require('../services/xlsx-converter');
 
 const getConnection = require("../config/mysql");
 
-
 module.exports = {
   upload: (req, res) => {
-    xlsxConverter('sample.xlsx').then(jsonArray => {
+    xlsxConverter("./" + req.file.path).then(jsonArray => {
       const tempLength = jsonArray.length;
       for (var i = 0; i < tempLength; i++) {
         if (jsonArray[i].length < 13) {
@@ -22,6 +21,7 @@ module.exports = {
         jsonArray[i].push("NOW()");
         jsonArray[i].push("NOW()");
       }
+      console.log(jsonArray);
       Promise.using(getConnection(), connection => {
         if (jsonArray.length > 0) {
           const query = "INSERT INTO players (firstName, lastName, teamNumber, birthday, leagueAge, phoneNumber, " +

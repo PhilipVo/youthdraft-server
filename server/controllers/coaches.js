@@ -12,7 +12,7 @@ const nodeMailer = require('../config/nodemailer');
 
 module.exports = {
   upload: (req, res) => {
-    xlsxConverter('sample.xlsx').then(jsonArray => {
+    xlsxConverter("./" + req.file.path).then(jsonArray => {
       const tempLength = jsonArray.length;
       for (var i = 0; i < tempLength; i++) {
         if (jsonArray[i].length < 5) {
