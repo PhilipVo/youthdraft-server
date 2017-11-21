@@ -228,13 +228,16 @@ app.post('/coaches/register', coaches.register);
 			"lastName": "Bash",
 			"phoneNumber": "918-281-4832",
 			"division": "AAA", // get from /divisions
+			"gender": "Male",
+			"birthday": "2001-3-25",
 			"city": "Dallas",
 			"state": "Texas",
+			"zip": "12321",
 			"pastDivisions":["AAA", "AA", "A"],
-      "yearsExperience": 0,
-			"pastLeague": "Miami Gophers"
-			"leagueName": "Giants", // use the leagueName from the GET /leagues route
-			"leagueCity": "Mehi", // use the city from the GET /leagues route
+    	"yearsExperience": 0,
+			"pastLeague": "Miami Gophers",
+			"leagueName": "Rivercats", // use the leagueName from the GET /leagues route
+			"leagueCity": "Mehicos", // use the city from the GET /leagues route
 			"leagueState": "CA" // use the state from the GET /leagues route
 		}
 	returns: 200 code
@@ -281,7 +284,9 @@ app.post('/coaches/reset', coaches.reset);
 	expects:
 		{
 			"email": "mehs@mell.com",
-			"leagueId": "94753D90C12D11E79BB98B11A4F1E340"
+			"leagueName": "Rivercats", // use the leagueName from the GET /leagues route
+			"leagueCity": "Mehicos", // use the city from the GET /leagues route
+			"leagueState": "CA" // use the state from the GET /leagues route
 		}
 	returns: 200 code
 
@@ -291,9 +296,9 @@ app.post('/coaches/login', coaches.login);
 		{
 			"email": "Gosh@gmail.com",
 			"password": "S7aY8kcSSp",
-			"leagueName": "Giants", // use the leagueName from the GET /leagues route
-			"city": "Mehi", // use the city from the GET /leagues route
-			"state": "CA" // use the state from the GET /leagues route
+			"leagueName": "Rivercats", // use the leagueName from the GET /leagues route
+			"leagueCity": "Mehicos", // use the city from the GET /leagues route
+			"leagueState": "CA" // use the state from the GET /leagues route
 		}
 	returns: JWT of coaches
 		"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE1MDk5NDg4NDUsImlkIjoiMTdCQkExNDBDMkFFMTFFNzk0RkM3REJDNDU4MTA5RTYiLCJsZWFndWVJZCI6Ijk0NzUzRDkwQzEyRDExRTc5QkI5OEIxMUE0RjFFMzQwIn0.QJYSgMcEPAR7U4gralusvxlEkyn8Gz3GUJ3h623TKj0"
@@ -381,7 +386,7 @@ app.post('/api/players', players.players);
 			"leagueAge": "16",
 			"phoneNumber": "932-843-2394",
 			"email": "tom@tom.com",
-			"division": "AAA", // get from /divisions
+			"division": "AAA", // get from /divisions  This is also their prior division
 			"pitcher": "true",
 			"catcher": "false",
 			"coachsKid": "false",
@@ -403,7 +408,7 @@ app.put('/api/players/:id', players.players);
 			"leagueAge": "16",
 			"phoneNumber": "932-843-2394",
 			"email": "tom@tom.com",
-			"division": "AAA", // get from /divisions
+			"division": "AAA", // get from /divisions  This is also their prior division
 			"pitcher": 1,
 			"catcher": 0,
 			"coachsKid": 0,
@@ -427,7 +432,7 @@ app.get('/api/players', players.getAll);
         "leagueAge": 16,
         "phoneNumber": "932-843-2394",
         "email": "tom@tom.com",
-        "division": "AAA",   // get from /divisions
+        "division": "AAA",   // This is also their prior division
         "pitcher": 1,
         "catcher": 0,
         "coachsKid": 0,
@@ -447,7 +452,7 @@ app.get('/api/players', players.getAll);
         "leagueAge": 15,
         "phoneNumber": "932-843-2394",
         "email": "tom@tom.com",
-        "division": "AA",   // get from /divisions
+        "division": "AA",   // This is also their prior division
         "pitcher": 1,
         "catcher": 0,
         "coachsKid": 0,
@@ -475,7 +480,7 @@ app.get('/api/players/get-players-for-division/:division', players.getDivision);
 					"leagueAge": 16,
 					"phoneNumber": "932-843-2394",
 					"email": "tom@tom.com",
-					"division": "AAA",   // get from /divisions
+					"division": "AAA",   // This is also their prior division
 					"pitcher": 1,
 					"catcher": 0,
 					"coachsKid": 0,

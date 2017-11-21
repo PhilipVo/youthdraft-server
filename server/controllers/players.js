@@ -42,27 +42,27 @@ module.exports = {
   getDivision: (req, res) => {
     req.body.division = req.body.division.toLowerCase();
     Promise.using(getConnection(), connection => {
-      const query = "SELECT HEX(id) as id, firstName, lastName, teamNumber, birthday, leagueAge, phoneNumber, email, division, " +
-        "pitcher, catcher, coachsKid, parentFirstName, parentLastName, createdAt, updatedAt, HEX(leagueId) as leagueId, " +
-        "HEX(teamId) as teamId FROM players WHERE leagueId = UNHEX(?) AND division = ?";
+      const query = "SELECT HEX(id) as id, firstName, lastName, teamNumber, birthday, leagueAge, phoneNumber, email, " +
+        "division, gender, pitcher, catcher, coachsKid, parentFirstName, parentLastName, createdAt, updatedAt, " +
+        "HEX(leagueId) as leagueId, HEX(teamId) as teamId FROM players WHERE leagueId = UNHEX(?) AND division = ?";
       return connection.execute(query, [req.user.id, req.params.division]);
     }).spread(data => res.status(200).json(data))
       .catch(error => res.status(400).json({ message: "Please contact an admin." }));
 	},
   getAll: (req, res) => {
     let tempId = [req.user.id]
-    let query = "SELECT HEX(id) as id, firstName, lastName, teamNumber, birthday, leagueAge, phoneNumber, email, division, " +
-      "pitcher, catcher, coachsKid, parentFirstName, parentLastName, createdAt, updatedAt, HEX(leagueId) as leagueId, " +
-      "HEX(teamId) as teamId FROM players WHERE leagueId = UNHEX(?)";
+    let query = "SELECT HEX(id) as id, firstName, lastName, teamNumber, birthday, leagueAge, phoneNumber, email, " +
+      "division, gender, pitcher, catcher, coachsKid, parentFirstName, parentLastName, createdAt, updatedAt, " +
+      "HEX(leagueId) as leagueId, HEX(teamId) as teamId FROM players WHERE leagueId = UNHEX(?)";
     if (req.user.leagueId) {
       tempId = [req.user.id, req.user.leagueId, req.user.leagueId]
       query = "SELECT HEX(c.id) as id, c.firstName as firstName, c.lastName as lastName, c.teamNumber as teamNumber, " +
         "c.birthday as birthday, c.leagueAge as leagueAge, c.phoneNumber as phoneNumber, c.email as email, " +
-        "c.pitcher as pitcher, c.catcher as catcher, c.coachsKid as coachsKid, c.parentFirstName as parentFirstName, " +
-        "c.parentLastName as parentLastName, c.createdAt as createdAt, c.updatedAt as updatedAt, HEX(c.leagueId) as leagueId, " +
-        "HEX(c.teamId) as teamId, b.name as teamName, b.division as division FROM coaches as a INNER JOIN teams as b " +
-        "ON a.division = b.division INNER JOIN players as c ON b.id = c.teamId WHERE a.id = UNHEX(?) AND b.leagueId = UNHEX(?) " +
-        "AND c.leagueId = UNHEX(?)";
+        "c.division as division, c.gender as gender, c.pitcher as pitcher, c.catcher as catcher, c.coachsKid as coachsKid, " +
+        "c.parentFirstName as parentFirstName, c.parentLastName as parentLastName, c.createdAt as createdAt, " +
+        "c.updatedAt as updatedAt, HEX(c.leagueId) as leagueId, HEX(c.teamId) as teamId, b.name as teamName, " +
+        "b.division as division FROM coaches as a INNER JOIN teams as b ON a.division = b.division INNER JOIN players " +
+        "as c ON b.id = c.teamId WHERE a.id = UNHEX(?) AND b.leagueId = UNHEX(?) AND c.leagueId = UNHEX(?)";
     }
     Promise.using(getConnection(), connection => connection.execute(query, tempId))
       .spread(data => res.status(200).json(data))
@@ -83,6 +83,7 @@ module.exports = {
 			!req.body.phoneNumber ||
       !req.body.email ||
       !req.body.division ||
+      !req.body.gender ||
       !req.body.pitcher ||
       !req.body.catcher ||
 			!req.body.coachsKid ||
@@ -91,6 +92,10 @@ module.exports = {
       !req.body.teamId
 		)
 			return res.status(400).json({ message: "All form fields are required."});
+
+    // Validate phone number:
+		if (!/^\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$/.test(req.body.phoneNumber))
+			return res.status(400).json({ message: "Invalid phone number.  Phone number format should be XXX-XXX-XXXX" });
 
     // Validate email:
 		if (!/[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/.test(req.body.email))
@@ -112,9 +117,9 @@ module.exports = {
     if (req.params.id) {
       requestType = "updatePlayer"
       query = "UPDATE players SET firstName = ?, lastName = ?, teamNumber = ?, birthday = ?, leagueAge = ?, " +
-        "phoneNumber = ?, email = ?, division = ?, pitcher = ?, catcher = ?, coachsKid = ?, parentFirstName = ?, " +
+        "phoneNumber = ?, email = ?, division = ?, gender = ?, pitcher = ?, catcher = ?, coachsKid = ?, parentFirstName = ?, " +
         "parentLastName = ?, updatedAt = NOW(), teamId = UNHEX(?) WHERE id = UNHEX(?) and leagueId = UNHEX(?) LIMIT 1";
-        req.body.id = req.params.id;
+      req.body.id = req.params.id;
       data = [
         req.body.firstName,
         req.body.lastName,
@@ -124,6 +129,7 @@ module.exports = {
         req.body.phoneNumber,
         req.body.email,
         req.body.division,
+        req.body.gender,
         pitcher,
         catcher,
         coachsKid,
@@ -135,9 +141,9 @@ module.exports = {
       ];
     } else {
       query = "INSERT INTO players SET id = UNHEX(?), leagueId = UNHEX(?), teamId = UNHEX(?), firstName = ?, lastName = ?, " +
-        "teamNumber = ?, birthday = ?, leagueAge = ?, phoneNumber = ?, email = ?, division = ?, pitcher = ?, catcher = ?, " +
-        "coachsKid = ?, parentFirstName = ?, parentLastName = ?, updatedAt = NOW(), createdAt = NOW()";
-        req.body.id = uuid().replace(/\-/g, "");
+        "teamNumber = ?, birthday = ?, leagueAge = ?, phoneNumber = ?, email = ?, division = ?, gender = ?, pitcher = ?, "
+        "catcher = ?, coachsKid = ?, parentFirstName = ?, parentLastName = ?, updatedAt = NOW(), createdAt = NOW()";
+      req.body.id = uuid().replace(/\-/g, "");
       data = [
         req.body.id,
         req.user.id,
@@ -150,6 +156,7 @@ module.exports = {
         req.body.phoneNumber,
         req.body.email,
         req.body.division,
+        req.body.gender,
         pitcher,
         catcher,
         coachsKid,

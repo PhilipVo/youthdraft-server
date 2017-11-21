@@ -47,20 +47,27 @@ module.exports = {
     });
 	},
   getAll: (req, res) => {
+    if (req.user.leagueId) {
+      return res.status(400).json({ message: "You must be a league admin to use this route." })
+    }
     Promise.using(getConnection(), connection => {
-      const query = "SELECT HEX(id) as id, firstName, lastName, email, division, phoneNumber, validated, " +
-        "createdAt, updatedAt, HEX(leagueId) as leagueId FROM coaches WHERE leagueId = UNHEX(?)";
+      const query = "SELECT HEX(a.id) as id, firstName, lastName, email, coachType, a.division, phoneNumber, birthday, " +
+        "gender, city, state, zip, validated, a.createdAt, a.updatedAt, HEX(a.leagueId) as leagueId, HEX(teamId) as teamId, " +
+        "b.name as teamName, b.division as teamDivision FROM coaches a LEFT JOIN teams as b ON a.teamId = b.id " +
+        "WHERE a.leagueId = UNHEX(?)";
       return connection.execute(query, [req.user.id]);
     }).spread(data => res.status(200).json(data))
-      .catch(error => res.status(400).json({ message: "Please contact an admin." }));
+      .catch(error => res.status(400).json({ message: "Please contact an admin.", error: error }));
 	},
   get: (req, res) => {
     if (!req.user.leagueId) {
       return res.status(400).json({ message: "You must be a coach to use this route." })
     }
     Promise.using(getConnection(), connection => {
-      const query = "SELECT HEX(id) as id, firstName, lastName, email, division, phoneNumber, createdAt, " +
-        "updatedAt, HEX(leagueId) as leagueId FROM coaches WHERE leagueId = UNHEX(?) AND id = UNHEX(?)";
+      const query = "SELECT HEX(a.id) as id, firstName, lastName, email, coachType, a.division, phoneNumber, birthday, " +
+        "gender, city, state, zip, validated, a.createdAt, a.updatedAt, HEX(a.leagueId) as leagueId, HEX(teamId) as teamId, " +
+        "b.name as teamName, b.division as teamDivision FROM coaches a LEFT JOIN teams as b ON a.teamId = b.id " +
+        "WHERE a.leagueId = UNHEX(?) AND a.id = UNHEX(?) LIMIT 1";
       return connection.execute(query, [req.user.leagueId, req.user.id]);
     }).spread(data => res.status(200).json(data[0]))
       .catch(error => res.status(400).json({ message: "Please contact an admin." }));
@@ -107,14 +114,23 @@ module.exports = {
     // Expecting all form data.
 		if (
 			(!req.body.email && req.user.league) ||
+      (!req.body.coachType && !req.user.league)||
 			!req.body.firstName ||
 			!req.body.lastName ||
 			!req.body.phoneNumber ||
+      (!req.body.teamId && !req.user.league)||
       (!req.body.division && !req.user.league)||
+      !req.body.birthday ||
+      !req.body.gender ||
 			!req.body.city ||
-      !req.body.state
+      !req.body.state ||
+      !req.body.zip
 		)
 			return res.status(400).json({ message: "All form fields are required." });
+
+    // Validate phone number:
+		if (!/^\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$/.test(req.body.phoneNumber))
+			return res.status(400).json({ message: "Invalid phone number.  Phone number format should be XXX-XXX-XXXX" });
 
     // Validate email:
 		if (!/[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/.test(req.body.email))
@@ -122,28 +138,31 @@ module.exports = {
 
     req.body.division = req.body.division.toLowerCase();
 
-    let query = "UPDATE coaches SET firstName = ?, lastName = ?, phoneNumber = ?, city = ?, state = ?, ";
+    let query = "UPDATE coaches SET ";
+    const data = [];
 
-    const data = [
-      req.body.firstName,
-      req.body.lastName,
-      req.body.phoneNumber,
-      req.body.city,
-      req.body.state
-    ];
     if (!req.user.league) {
-      query += "division = ?, "
+      query += "coachType = ?, division = ?, teamId = ?, "
+      data.push(req.body.coachType);
       data.push(req.body.division);
+      data.push(req.body.teamId);
       data.push(req.params.id);
       data.push(req.user.id);
     } else {
-      query += "email = ?, "
-      data.push(req.body.email);
+      query += "email = ?, firstName = ?, lastName = ?, phoneNumber = ?, birthday = ?, " +
+        "gender = ?, city = ?, state = ?, zip =?, "
+      data.push(req.body.firstName);
+      data.push(req.user.lastName);
+      data.push(req.user.phoneNumber);
+      data.push(req.body.birthday);
+      data.push(req.user.gender);
+      data.push(req.user.city);
+      data.push(req.user.state);
+      data.push(req.body.zip);
       data.push(req.user.id);
       data.push(req.user.leagueId);
     }
     query += "updatedAt = NOW() WHERE id = UNHEX(?) and leagueId = UNHEX(?) LIMIT 1";
-    console.log(data);
     Promise.using(getConnection(), connection => connection.execute(query, data))
     .then(() => res.end())
     .catch(error => {
@@ -155,15 +174,23 @@ module.exports = {
   createCoaches: (req, res) => {
     // Expecting all form data.
 		if (
+      !req.body.coachType ||
 			!req.body.email ||
 			!req.body.firstName ||
 			!req.body.lastName ||
 			!req.body.phoneNumber ||
       !req.body.division ||
+      !req.body.birthday ||
+      !req.body.gender ||
 			!req.body.city ||
-      !req.body.state
+      !req.body.state ||
+      !req.body.zip
 		)
 			return res.status(400).json({ message: "All form fields are required." });
+
+    // Validate phone number:
+		if (!/^\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$/.test(req.body.phoneNumber))
+			return res.status(400).json({ message: "Invalid phone number.  Phone number format should be XXX-XXX-XXXX" });
 
     // Validate email:
 		if (!/[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/.test(req.body.email))
@@ -175,18 +202,22 @@ module.exports = {
     bcrypt.genSaltAsync(10)
 			.then(salt => bcrypt.hashAsync(password, salt))
 			.then(hash => Promise.using(getConnection(), connection => {
-        const query = "INSERT INTO coaches SET id = UNHEX(?), email = ?, firstName = ?, lastName = ?, phoneNumber = ?, " +
-          "division = ?, city = ?, state = ?, password = ?, validated = 1, updatedAt = NOW(), createdAt = NOW(), " +
-          "leagueId = UNHEX(?)";
+        const query = "INSERT INTO coaches SET id = UNHEX(?), email = ?, coachType = ?, firstName = ?, lastName = ?, " +
+          "phoneNumber = ?, division = ?, birthday = ?, gender = ?, city = ?, state = ?, zip =?, password = ?, " +
+          "validated = 1, updatedAt = NOW(), createdAt = NOW(), leagueId = UNHEX(?)";
         const data = [
           uuid().replace(/\-/g, ""),
+          req.body.coachType,
           req.body.email,
           req.body.firstName,
           req.body.lastName,
           req.body.phoneNumber,
           req.body.division,
+          req.body.birthday,
+          req.body.gender,
           req.body.city,
           req.body.state,
+          req.body.zip,
           hash,
           req.user.id
         ];
@@ -214,8 +245,11 @@ module.exports = {
 			!req.body.lastName ||
 			!req.body.phoneNumber ||
       !req.body.division ||
+      !req.body.birthday ||
+      !req.body.gender ||
 			!req.body.city ||
       !req.body.state ||
+      !req.body.zip ||
       (!req.body.yearsExperience && req.body.yearsExperience != 0) ||
       !req.body.pastDivisions ||
       !req.body.leagueName ||
@@ -223,6 +257,10 @@ module.exports = {
       !req.body.leagueState
 		)
 			return res.status(400).json({ message: "All form fields are required." });
+
+    // Validate phone number:
+		if (!/^\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$/.test(req.body.phoneNumber))
+			return res.status(400).json({ message: "Invalid phone number.  Phone number format should be XXX-XXX-XXXX" });
 
     // Validate email:
 		if (!/[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/.test(req.body.email))
@@ -234,8 +272,9 @@ module.exports = {
 
     //Setup the query
     const query = "INSERT INTO coaches SET id = UNHEX(?), email = ?, firstName = ?, lastName = ?, phoneNumber = ?, " +
-      "division = ?, city = ?, state = ?, yearsExperience = ?, pastLeague = ?, validated = 0, updatedAt = NOW(), " +
-      "createdAt = NOW(), leagueId = (SELECT id FROM leagues WHERE leagueName = ? AND city = ? AND state = ? LIMIT 1)";
+      "division = ?, birthday = ?, gender = ?, city = ?, state = ?, zip =?, yearsExperience = ?, pastLeague = ?, " +
+      "validated = 0, updatedAt = NOW(), createdAt = NOW(), leagueId = (SELECT id FROM leagues WHERE leagueName = ? " +
+      "AND city = ? AND state = ? LIMIT 1)";
     const data = [
       id,
       req.body.email,
@@ -243,8 +282,11 @@ module.exports = {
       req.body.lastName,
       req.body.phoneNumber,
       req.body.division,
+      req.body.birthday,
+      req.body.gender,
       req.body.city,
       req.body.state,
+      req.body.zip,
       req.body.yearsExperience,
       req.body.pastLeague,
       req.body.leagueName,
