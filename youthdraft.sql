@@ -42,7 +42,7 @@ CREATE TABLE `coachPastDivisions` (
 
 LOCK TABLES `coachPastDivisions` WRITE;
 /*!40000 ALTER TABLE `coachPastDivisions` DISABLE KEYS */;
-INSERT INTO `coachPastDivisions` VALUES ('hÕ,ÀÊ²ç‹%Ñ/t	/ï','AAA','2017-11-16 01:42:07','2017-11-16 01:42:07'),('hÕ,ÀÊ²ç‹%Ñ/t	/ï','AA','2017-11-16 01:42:07','2017-11-16 01:42:07'),('hÕ,ÀÊ²ç‹%Ñ/t	/ï','A','2017-11-16 01:42:07','2017-11-16 01:42:07'),('¦ÁÖ\0Ê²ç‹%Ñ/t	/ï','AAA','2017-11-16 01:43:50','2017-11-16 01:43:50'),('¦ÁÖ\0Ê²ç‹%Ñ/t	/ï','AA','2017-11-16 01:43:50','2017-11-16 01:43:50'),('¦ÁÖ\0Ê²ç‹%Ñ/t	/ï','TEEBALL','2017-11-16 01:43:50','2017-11-16 01:43:50');
+INSERT INTO `coachPastDivisions` VALUES ('hÕ,ÀÊ²ç‹%Ñ/t	/ï','AAA','2017-11-16 01:42:07','2017-11-16 01:42:07'),('hÕ,ÀÊ²ç‹%Ñ/t	/ï','AA','2017-11-16 01:42:07','2017-11-16 01:42:07'),('hÕ,ÀÊ²ç‹%Ñ/t	/ï','A','2017-11-16 01:42:07','2017-11-16 01:42:07'),('¦ÁÖ\0Ê²ç‹%Ñ/t	/ï','AAA','2017-11-16 01:43:50','2017-11-16 01:43:50'),('¦ÁÖ\0Ê²ç‹%Ñ/t	/ï','AA','2017-11-16 01:43:50','2017-11-16 01:43:50'),('¦ÁÖ\0Ê²ç‹%Ñ/t	/ï','TEEBALL','2017-11-16 01:43:50','2017-11-16 01:43:50'),('îž ÎbçµoƒÊT’þÜ','AAA','2017-11-20 18:23:16','2017-11-20 18:23:16'),('îž ÎbçµoƒÊT’þÜ','AA','2017-11-20 18:23:16','2017-11-20 18:23:16'),('îž ÎbçµoƒÊT’þÜ','A','2017-11-20 18:23:16','2017-11-20 18:23:16');
 /*!40000 ALTER TABLE `coachPastDivisions` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -56,12 +56,17 @@ DROP TABLE IF EXISTS `coaches`;
 CREATE TABLE `coaches` (
   `id` binary(16) NOT NULL,
   `leagueId` binary(16) NOT NULL,
+  `teamId` binary(16) DEFAULT NULL,
+  `coachType` varchar(15) DEFAULT NULL,
   `division` varchar(8) NOT NULL,
+  `birthday` date DEFAULT NULL,
+  `gender` date DEFAULT NULL,
   `firstName` varchar(45) DEFAULT NULL,
   `lastName` varchar(45) DEFAULT NULL,
   `email` varchar(255) DEFAULT NULL,
   `city` varchar(45) DEFAULT NULL,
   `state` varchar(45) DEFAULT NULL,
+  `zip` date DEFAULT NULL,
   `phoneNumber` varchar(12) DEFAULT NULL,
   `password` varchar(255) DEFAULT NULL,
   `pastLeague` varchar(255) DEFAULT NULL,
@@ -73,6 +78,8 @@ CREATE TABLE `coaches` (
   UNIQUE KEY `UNIQUE_INDEX` (`email`,`leagueId`),
   KEY `fk_coaches_leagues1_idx` (`leagueId`),
   KEY `fk_coaches_divisions1_idx` (`division`),
+  KEY `fk_teams` (`teamId`),
+  CONSTRAINT `coaches_ibfk_1` FOREIGN KEY (`teamId`) REFERENCES `teams` (`id`) ON DELETE NO ACTION ON UPDATE CASCADE,
   CONSTRAINT `fk_coaches_divisions1` FOREIGN KEY (`division`) REFERENCES `divisions` (`type`) ON DELETE NO ACTION ON UPDATE NO ACTION,
   CONSTRAINT `fk_coaches_leagues1` FOREIGN KEY (`leagueId`) REFERENCES `leagues` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -84,7 +91,7 @@ CREATE TABLE `coaches` (
 
 LOCK TABLES `coaches` WRITE;
 /*!40000 ALTER TABLE `coaches` DISABLE KEYS */;
-INSERT INTO `coaches` VALUES ('hÕ,ÀÊ²ç‹%Ñ/t	/ï','Pu™`ÊxçŠ-qÝ×üÈ\Z','aaa','Mahs','Bash','mehs@mell.com','Dallas','Texas','918-281-4832','$2a$10$ScbUyWYQTClh8umbYR58MOG2gbr61tVViIOJBKJWAAjsJHe3Q9auu','',0,1,'2017-11-16 01:42:07','2017-11-16 01:47:34'),('¦ÁÖ\0Ê²ç‹%Ñ/t	/ï','Pu™`ÊxçŠ-qÝ×üÈ\Z','aa','Gosh','Darnit','Gosh@gmail.com','Dallas','Texas','918-281-4832','$2a$10$wAeSldokcGthILwHVmTuSemECD0occ/HSTz1omBmzst/bDG87FLf.','',0,1,'2017-11-16 01:43:50','2017-11-16 01:47:49');
+INSERT INTO `coaches` VALUES ('hÕ,ÀÊ²ç‹%Ñ/t	/ï','Pu™`ÊxçŠ-qÝ×üÈ\Z',NULL,NULL,'aaa',NULL,NULL,'Mahs','Bash','mehs@mell.com','Dallas','Texas',NULL,'918-281-4832','$2a$10$ScbUyWYQTClh8umbYR58MOG2gbr61tVViIOJBKJWAAjsJHe3Q9auu','',0,1,'2017-11-16 01:42:07','2017-11-16 01:47:34'),('¦ÁÖ\0Ê²ç‹%Ñ/t	/ï','Pu™`ÊxçŠ-qÝ×üÈ\Z',NULL,NULL,'aa',NULL,NULL,'Gosh','Darnit','Gosh@gmail.com','Dallas','Texas',NULL,'918-281-4832','$2a$10$wAeSldokcGthILwHVmTuSemECD0occ/HSTz1omBmzst/bDG87FLf.','',0,1,'2017-11-16 01:43:50','2017-11-16 01:47:49'),('îž ÎbçµoƒÊT’þÜ','Pu™`ÊxçŠ-qÝ×üÈ\Z',NULL,NULL,'aaa','2001-03-25','0000-00-00','Mahs','Bash','Bastard@gmail.com','Dallas','Texas','0000-00-00','918-281-4832',NULL,'Miami Gophers',0,0,'2017-11-20 18:23:16','2017-11-20 18:23:16');
 /*!40000 ALTER TABLE `coaches` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -363,4 +370,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2017-11-16  2:40:03
+-- Dump completed on 2017-11-20 18:28:51
