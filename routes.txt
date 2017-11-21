@@ -330,6 +330,8 @@ app.put('/api/coaches/:id', coaches.coaches);
 		With the JWT of a league admin:
 			{
 				"division": "AAA", // get from /divisions
+				"teamId": "162D4DF0CAA211E79126BBB330C2AEAD",
+				"coachType": "Head"
 			}
 		With the JWT of a coach:
 			{
@@ -354,18 +356,14 @@ app.post('/api/coaches', coaches.createCoaches);
 			"firstName":"Mahs",
 			"lastName": "Bash",
 			"phoneNumber": "918-281-4832",
+			"coachType": "Head",
 			"division": "AAA", // get from /divisions
 			"gender": "Male",
 			"birthday": "2001-3-25",
 			"city": "Dallas",
 			"state": "Texas",
 			"zip": "12321",
-			"pastDivisions":["AAA", "AA", "A"],
-			"yearsExperience": 0,
-			"pastLeague": "Miami Gophers",
-			"leagueName": "Rivercats", // use the leagueName from the GET /leagues route
-			"leagueCity": "Mehicos", // use the city from the GET /leagues route
-			"leagueState": "CA" // use the state from the GET /leagues route
+			"teamId": "162D4DF0CAA211E79126BBB330C2AEAD" // get from /api/teams
 		}
 	returns 200 code
 

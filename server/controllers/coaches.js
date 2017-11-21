@@ -184,7 +184,8 @@ module.exports = {
       !req.body.gender ||
 			!req.body.city ||
       !req.body.state ||
-      !req.body.zip
+      !req.body.zip ||
+      !req.body.teamId
 		)
 			return res.status(400).json({ message: "All form fields are required." });
 
@@ -204,7 +205,7 @@ module.exports = {
 			.then(hash => Promise.using(getConnection(), connection => {
         const query = "INSERT INTO coaches SET id = UNHEX(?), email = ?, coachType = ?, firstName = ?, lastName = ?, " +
           "phoneNumber = ?, division = ?, birthday = ?, gender = ?, city = ?, state = ?, zip =?, password = ?, " +
-          "validated = 1, updatedAt = NOW(), createdAt = NOW(), leagueId = UNHEX(?)";
+          "teamId = ?, validated = 1, updatedAt = NOW(), createdAt = NOW(), leagueId = UNHEX(?)";
         const data = [
           uuid().replace(/\-/g, ""),
           req.body.coachType,
@@ -218,6 +219,7 @@ module.exports = {
           req.body.city,
           req.body.state,
           req.body.zip,
+          req.body.teamId,
           hash,
           req.user.id
         ];
