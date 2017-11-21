@@ -246,30 +246,50 @@ app.get('/api/coaches/all', coaches.getAll);
 	// Gets all the coaches of a league
 	expects: JWT of league admin
 	returns:
-		[
-			{
-					"id": "17BBA140C2AE11E794FC7DBC458109E6",
-					"firstName": "Mahs",
-					"lastName": "Bash",
-					"email": "mehs@mell.com",
-					"division": "AAA", // get from /divisions
-					"phoneNumber": "918-281-4832",
-					"createdAt": "2017-11-06T04:51:03.000Z",
-					"updatedAt": "2017-11-06T04:51:03.000Z",
-					"leagueId": "94753D90C12D11E79BB98B11A4F1E340"
-			},
-			{
-					"id": "F1650630C2AD11E794FC7DBC458109E6",
-					"firstName": "Mell",
-					"lastName": "Bash",
-					"email": "mel@mell.com",
-					"division": "Major", // get from /divisions
-					"phoneNumber": "918-281-4832",
-					"createdAt": "2017-11-06T04:49:59.000Z",
-					"updatedAt": "2017-11-06T04:49:59.000Z",
-					"leagueId": "94753D90C12D11E79BB98B11A4F1E340"
-			}
-		]
+	[
+		{
+				"id": "68D52CC0CAB211E78B25D12F74092FEF",
+				"firstName": "Mahs",
+				"lastName": "Bash",
+				"email": "mehs@mell.com",
+				"coachType": null,
+				"division": "aaa",
+				"phoneNumber": "918-281-4832",
+				"birthday": null,
+				"gender": null,
+				"city": "Dallas",
+				"state": "Texas",
+				"zip": null,
+				"validated": 1,
+				"createdAt": "2017-11-16T01:42:07.000Z",
+				"updatedAt": "2017-11-16T01:47:34.000Z",
+				"leagueId": "50759960CA7811E78A2D71DDD7FCC81A",
+				"teamId": null,
+				"teamName": null,
+				"teamDivision": null
+		},
+		{
+				"id": "A6C1D600CAB211E78B25D12F74092FEF",
+				"firstName": "Gosh",
+				"lastName": "Darnit",
+				"email": "Gosh@gmail.com",
+				"coachType": null,
+				"division": "aa",
+				"phoneNumber": "918-281-4832",
+				"birthday": null,
+				"gender": null,
+				"city": "Dallas",
+				"state": "Texas",
+				"zip": null,
+				"validated": 1,
+				"createdAt": "2017-11-16T01:43:50.000Z",
+				"updatedAt": "2017-11-16T01:47:49.000Z",
+				"leagueId": "50759960CA7811E78A2D71DDD7FCC81A",
+				"teamId": null,
+				"teamName": null,
+				"teamDivision": null
+		}
+	]
 
 app.post('/api/coaches/validate/:id', coaches.validate);
 	// Validates a coach and send out the password to the given email address, the :id expects a id of a coach
@@ -307,15 +327,22 @@ app.put('/api/coaches/:id', coaches.coaches);
 	// Modifies a coach's profile.  May have to change it so that a league admin cannot change the email.
 	// :id is the coach's id
 	expects: Either JWT of league admin or a coach
-		{
-			"email": "mehs@mell.com",
-			"firstName":"Mas",
-			"lastName": "Bah",
-			"phoneNumber": "918-281-4832",
-			"division": "AA", // get from /divisions
-			"city": "Dallas",
-			"state": "Texas"
-		}
+		With the JWT of a league admin:
+			{
+				"division": "AAA", // get from /divisions
+			}
+		With the JWT of a coach:
+			{
+				"email": "mehs@mell.com",
+				"firstName":"Mahs",
+				"lastName": "Bash",
+				"phoneNumber": "918-281-4832",
+				"gender": "Male",
+				"birthday": "2001-3-25",
+				"city": "Dallas",
+				"state": "Texas",
+				"zip": "12321",
+			}
 	returns 200 code
 
 app.post('/api/coaches', coaches.createCoaches);
@@ -324,12 +351,21 @@ app.post('/api/coaches', coaches.createCoaches);
 	expects: Either JWT of league admin or a coach
 		{
 			"email": "mehs@mell.com",
-			"firstName":"Mas",
-			"lastName": "Bah",
+			"firstName":"Mahs",
+			"lastName": "Bash",
 			"phoneNumber": "918-281-4832",
-			"division": "AA", // get from /divisions
+			"division": "AAA", // get from /divisions
+			"gender": "Male",
+			"birthday": "2001-3-25",
 			"city": "Dallas",
-			"state": "Texas"
+			"state": "Texas",
+			"zip": "12321",
+			"pastDivisions":["AAA", "AA", "A"],
+			"yearsExperience": 0,
+			"pastLeague": "Miami Gophers",
+			"leagueName": "Rivercats", // use the leagueName from the GET /leagues route
+			"leagueCity": "Mehicos", // use the city from the GET /leagues route
+			"leagueState": "CA" // use the state from the GET /leagues route
 		}
 	returns 200 code
 

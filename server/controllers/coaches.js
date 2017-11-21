@@ -115,16 +115,16 @@ module.exports = {
 		if (
 			(!req.body.email && req.user.league) ||
       (!req.body.coachType && !req.user.league)||
-			!req.body.firstName ||
-			!req.body.lastName ||
-			!req.body.phoneNumber ||
+			(!req.body.firstName && req.user.league) ||
+			(!req.body.lastName && req.user.league) ||
+			(!req.body.phoneNumber && req.user.league) ||
       (!req.body.teamId && !req.user.league)||
       (!req.body.division && !req.user.league)||
-      !req.body.birthday ||
-      !req.body.gender ||
-			!req.body.city ||
-      !req.body.state ||
-      !req.body.zip
+      (!req.body.birthday && req.user.league) ||
+      (!req.body.gender && req.user.league) ||
+			(!req.body.city && req.user.league) ||
+      (!req.body.state && req.user.league) ||
+      (!req.body.zip && req.user.league)
 		)
 			return res.status(400).json({ message: "All form fields are required." });
 
