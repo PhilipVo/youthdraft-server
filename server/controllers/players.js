@@ -167,7 +167,7 @@ module.exports = {
     Promise.using(getConnection(), connection => connection.execute(query, data))
       .then(() => {
         req.io.sockets.in(req.user.id).emit(requestType, req.body);
-        res.status(200).json(req.body.id)
+        res.status(200).json({id:req.body.id})
       })
       .catch(error => {
         if (error.status)

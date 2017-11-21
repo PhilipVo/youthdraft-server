@@ -410,7 +410,7 @@ app.post('/api/players/upload', players.upload);
 
 // For single
 app.post('/api/players', players.players);
-	// For the league admin to create a player
+	// For the league admin to create a player also socket.emits
 	expects: JWT of a league admin
 		{
 			"firstName": "Gray",
@@ -428,7 +428,10 @@ app.post('/api/players', players.players);
 			"parentLastName": "Sue",
 			"teamId": "73DFFB60C1F011E7BC8C7F70B6BAE7A5"
 		}
-	returns 200 code
+	returns
+		{
+			id: 18AAC7F0C2C911E7A116094B99CE6F39
+		}
 
 app.put('/api/players/:id', players.players);
 	// For the league admin to update a player's info
@@ -450,7 +453,10 @@ app.put('/api/players/:id', players.players);
 			"parentLastName": "Sue",
 			"teamId": "73DFFB60C1F011E7BC8C7F70B6BAE7A5"
 		}
-	returns 200 code
+	returns
+		{
+			id: 18AAC7F0C2C911E7A116094B99CE6F39
+		}
 
 app.get('/api/players', players.getAll);
 	// Gets all the players of the league
