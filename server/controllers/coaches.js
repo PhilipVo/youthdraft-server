@@ -52,9 +52,9 @@ module.exports = {
     }
     Promise.using(getConnection(), connection => {
       const query = "SELECT HEX(a.id) as id, firstName, lastName, email, coachType, a.division, phoneNumber, birthday, " +
-        "gender, city, state, zip, validated, a.createdAt, a.updatedAt, HEX(a.leagueId) as leagueId, HEX(teamId) as teamId, " +
-        "b.name as teamName, b.division as teamDivision FROM coaches a LEFT JOIN teams as b ON a.teamId = b.id " +
-        "WHERE a.leagueId = UNHEX(?)";
+        "gender, address, city, state, zip, validated, a.createdAt, a.updatedAt, HEX(a.leagueId) as leagueId, " +
+        "HEX(teamId) as teamId, b.name as teamName, b.division as teamDivision FROM coaches a LEFT JOIN teams as" +
+        " b ON a.teamId = b.id WHERE a.leagueId = UNHEX(?)";
       return connection.execute(query, [req.user.id]);
     }).spread(data => res.status(200).json(data))
       .catch(error => res.status(400).json({ message: "Please contact an admin.", error: error }));
@@ -65,9 +65,9 @@ module.exports = {
     }
     Promise.using(getConnection(), connection => {
       const query = "SELECT HEX(a.id) as id, firstName, lastName, email, coachType, a.division, phoneNumber, birthday, " +
-        "gender, city, state, zip, validated, a.createdAt, a.updatedAt, HEX(a.leagueId) as leagueId, HEX(teamId) as teamId, " +
-        "b.name as teamName, b.division as teamDivision FROM coaches a LEFT JOIN teams as b ON a.teamId = b.id " +
-        "WHERE a.leagueId = UNHEX(?) AND a.id = UNHEX(?) LIMIT 1";
+        "gender, address, city, state, zip, validated, a.createdAt, a.updatedAt, HEX(a.leagueId) as leagueId, " +
+        "HEX(teamId) as teamId, b.name as teamName, b.division as teamDivision FROM coaches a LEFT JOIN teams as " +
+        "b ON a.teamId = b.id WHERE a.leagueId = UNHEX(?) AND a.id = UNHEX(?) LIMIT 1";
       return connection.execute(query, [req.user.leagueId, req.user.id]);
     }).spread(data => res.status(200).json(data[0]))
       .catch(error => res.status(400).json({ message: "Please contact an admin." }));
@@ -122,6 +122,7 @@ module.exports = {
       (!req.body.division && !req.user.league)||
       (!req.body.birthday && req.user.league) ||
       (!req.body.gender && req.user.league) ||
+      (!req.body.address && req.user.league) ||
 			(!req.body.city && req.user.league) ||
       (!req.body.state && req.user.league) ||
       (!req.body.zip && req.user.league)
@@ -150,12 +151,14 @@ module.exports = {
       data.push(req.user.id);
     } else {
       query += "email = ?, firstName = ?, lastName = ?, phoneNumber = ?, birthday = ?, " +
-        "gender = ?, city = ?, state = ?, zip =?, "
+        "gender = ?, address = ?, city = ?, state = ?, zip =?, "
+      data.push(req.body.email);
       data.push(req.body.firstName);
       data.push(req.user.lastName);
       data.push(req.user.phoneNumber);
       data.push(req.body.birthday);
       data.push(req.user.gender);
+      data.push(req.user.address);
       data.push(req.user.city);
       data.push(req.user.state);
       data.push(req.body.zip);
@@ -182,6 +185,7 @@ module.exports = {
       !req.body.division ||
       !req.body.birthday ||
       !req.body.gender ||
+      !req.body.address ||
 			!req.body.city ||
       !req.body.state ||
       !req.body.zip ||
@@ -204,8 +208,8 @@ module.exports = {
 			.then(salt => bcrypt.hashAsync(password, salt))
 			.then(hash => Promise.using(getConnection(), connection => {
         const query = "INSERT INTO coaches SET id = UNHEX(?), email = ?, coachType = ?, firstName = ?, lastName = ?, " +
-          "phoneNumber = ?, division = ?, birthday = ?, gender = ?, city = ?, state = ?, zip =?, password = ?, " +
-          "teamId = ?, validated = 1, updatedAt = NOW(), createdAt = NOW(), leagueId = UNHEX(?)";
+          "phoneNumber = ?, division = ?, birthday = ?, gender = ?, address = ?, city = ?, state = ?, zip =?, " +
+          "password = ?, teamId = ?, validated = 1, updatedAt = NOW(), createdAt = NOW(), leagueId = UNHEX(?)";
         const data = [
           uuid().replace(/\-/g, ""),
           req.body.coachType,
@@ -216,11 +220,12 @@ module.exports = {
           req.body.division,
           req.body.birthday,
           req.body.gender,
+          req.body.address,
           req.body.city,
           req.body.state,
           req.body.zip,
-          req.body.teamId,
           hash,
+          req.body.teamId,
           req.user.id
         ];
         return connection.execute(query, data);
@@ -249,6 +254,7 @@ module.exports = {
       !req.body.division ||
       !req.body.birthday ||
       !req.body.gender ||
+      !req.body.address ||
 			!req.body.city ||
       !req.body.state ||
       !req.body.zip ||
@@ -274,7 +280,7 @@ module.exports = {
 
     //Setup the query
     const query = "INSERT INTO coaches SET id = UNHEX(?), email = ?, firstName = ?, lastName = ?, phoneNumber = ?, " +
-      "division = ?, birthday = ?, gender = ?, city = ?, state = ?, zip =?, yearsExperience = ?, pastLeague = ?, " +
+      "division = ?, birthday = ?, gender = ?, address = ?, city = ?, state = ?, zip =?, yearsExperience = ?, pastLeague = ?, " +
       "validated = 0, updatedAt = NOW(), createdAt = NOW(), leagueId = (SELECT id FROM leagues WHERE leagueName = ? " +
       "AND city = ? AND state = ? LIMIT 1)";
     const data = [
@@ -286,6 +292,7 @@ module.exports = {
       req.body.division,
       req.body.birthday,
       req.body.gender,
+      req.body.address,
       req.body.city,
       req.body.state,
       req.body.zip,
@@ -304,6 +311,8 @@ module.exports = {
       for (let i = 0; i < tempLength; i++) {
         data2.push([new Buffer(id, "hex"), tempData[i], "NOW()", "NOW()"])
       }
+    } else {
+      return res.status(400).json({ message: "There were too many past divisions.  Something went wrong.  Please try again." });
     }
 
     Promise.using(getConnection(), connection => connection.execute(query, data))
