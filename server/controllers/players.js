@@ -40,33 +40,36 @@ module.exports = {
     });
 	},
   getDivision: (req, res) => {
-    req.body.division = req.body.division.toLowerCase();
+    req.params.division = req.params.division.toLowerCase();
     Promise.using(getConnection(), connection => {
-      const query = "SELECT HEX(id) as id, firstName, lastName, teamNumber, birthday, leagueAge, phoneNumber, email, " +
-        "division, gender, pitcher, catcher, coachsKid, parentFirstName, parentLastName, createdAt, updatedAt, " +
-        "HEX(leagueId) as leagueId, HEX(teamId) as teamId FROM players WHERE leagueId = UNHEX(?) AND division = ?";
+      const query = "SELECT HEX(a.id) as id, firstName, lastName, teamNumber, birthday, leagueAge, phoneNumber, email, " +
+        "division, gender, pitcher, catcher, coachsKid, parentFirstName, parentLastName, HEX(tryoutId) as tryoutId, " +
+        "d.date as tryoutDate, d.address as tryoutAddress, a.createdAt, a.updatedAt, HEX(a.leagueId) as leagueId, HEX(teamId) " +
+        "as teamId FROM players as a LEFT JOIN tryouts d ON tryoutId = d.id WHERE a.leagueId = UNHEX(?) AND division = ?";
       return connection.execute(query, [req.user.id, req.params.division]);
     }).spread(data => res.status(200).json(data))
-      .catch(error => res.status(400).json({ message: "Please contact an admin." }));
+      .catch(error => res.status(400).json({ message: "Please contact an admin.", error: error  }));
 	},
   getAll: (req, res) => {
     let tempId = [req.user.id]
-    let query = "SELECT HEX(id) as id, firstName, lastName, teamNumber, birthday, leagueAge, phoneNumber, email, " +
-      "division, gender, pitcher, catcher, coachsKid, parentFirstName, parentLastName, createdAt, updatedAt, " +
-      "HEX(leagueId) as leagueId, HEX(teamId) as teamId FROM players WHERE leagueId = UNHEX(?)";
+    let query = "SELECT HEX(a.id) as id, firstName, lastName, teamNumber, birthday, leagueAge, phoneNumber, email, " +
+      "division, gender, pitcher, catcher, coachsKid, parentFirstName, parentLastName, HEX(tryoutId) as tryoutId, " +
+      "d.date as tryoutDate, d.address as tryoutAddress, a.createdAt, a.updatedAt, HEX(a.leagueId) as leagueId, HEX(teamId) " +
+      "as teamId FROM players as a LEFT JOIN tryouts d ON tryoutId = d.id WHERE a.leagueId = UNHEX(?)";
     if (req.user.leagueId) {
       tempId = [req.user.id, req.user.leagueId, req.user.leagueId]
       query = "SELECT HEX(c.id) as id, c.firstName as firstName, c.lastName as lastName, c.teamNumber as teamNumber, " +
         "c.birthday as birthday, c.leagueAge as leagueAge, c.phoneNumber as phoneNumber, c.email as email, " +
         "c.division as division, c.gender as gender, c.pitcher as pitcher, c.catcher as catcher, c.coachsKid as coachsKid, " +
-        "c.parentFirstName as parentFirstName, c.parentLastName as parentLastName, c.createdAt as createdAt, " +
-        "c.updatedAt as updatedAt, HEX(c.leagueId) as leagueId, HEX(c.teamId) as teamId, b.name as teamName, " +
-        "b.division as division FROM coaches as a INNER JOIN teams as b ON a.division = b.division INNER JOIN players " +
-        "as c ON b.id = c.teamId WHERE a.id = UNHEX(?) AND b.leagueId = UNHEX(?) AND c.leagueId = UNHEX(?)";
+        "c.parentFirstName as parentFirstName, c.parentLastName as parentLastName, HEX(c.tryoutId) as tryoutId, " +
+        "d.date as tryoutDate, d.address as tryoutAddress, c.createdAt as createdAt, c.updatedAt as updatedAt, " +
+        "HEX(c.leagueId) as leagueId, HEX(c.teamId) as teamId, b.name as teamName, b.division as division " +
+        "FROM coaches as a INNER JOIN teams as b ON a.division = b.division INNER JOIN players as c ON b.id = c.teamId " +
+        "LEFT JOIN tryouts d ON c.tryoutId = d.id WHERE a.id = UNHEX(?) AND b.leagueId = UNHEX(?) AND c.leagueId = UNHEX(?)";
     }
     Promise.using(getConnection(), connection => connection.execute(query, tempId))
       .spread(data => res.status(200).json(data))
-      .catch(error => res.status(400).json({ message: "Please contact an admin." }));
+      .catch(error => res.status(400).json({ message: "Please contact an admin.", error: error }));
 	},
   players: (req, res) => {
     if (req.user.leagueId)
@@ -88,8 +91,7 @@ module.exports = {
       !req.body.catcher ||
 			!req.body.coachsKid ||
       !req.body.parentFirstName ||
-      !req.body.parentLastName ||
-      !req.body.teamId
+      !req.body.parentLastName
 		)
 			return res.status(400).json({ message: "All form fields are required."});
 
@@ -136,6 +138,7 @@ module.exports = {
         req.body.parentFirstName,
         req.body.parentLastName,
         req.body.teamId,
+        req.body.tryoutId,
         req.body.id,
         req.user.id
       ];

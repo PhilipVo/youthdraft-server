@@ -230,6 +230,7 @@ app.post('/coaches/register', coaches.register);
 			"division": "AAA", // get from /divisions
 			"gender": "Male",
 			"birthday": "2001-3-25",
+			"address": "123 Easy Street",
 			"city": "Dallas",
 			"state": "Texas",
 			"zip": "12321",
@@ -257,6 +258,7 @@ app.get('/api/coaches/all', coaches.getAll);
 				"phoneNumber": "918-281-4832",
 				"birthday": null,
 				"gender": null,
+				"address": "123 Easy Street",
 				"city": "Dallas",
 				"state": "Texas",
 				"zip": null,
@@ -278,6 +280,7 @@ app.get('/api/coaches/all', coaches.getAll);
 				"phoneNumber": "918-281-4832",
 				"birthday": null,
 				"gender": null,
+				"address": "123 Easy Street",
 				"city": "Dallas",
 				"state": "Texas",
 				"zip": null,
@@ -341,6 +344,7 @@ app.put('/api/coaches/:id', coaches.coaches);
 				"phoneNumber": "918-281-4832",
 				"gender": "Male",
 				"birthday": "2001-3-25",
+				"address": "123 Easy Street",
 				"city": "Dallas",
 				"state": "Texas",
 				"zip": "12321",
@@ -360,6 +364,7 @@ app.post('/api/coaches', coaches.createCoaches);
 			"division": "AAA", // get from /divisions
 			"gender": "Male",
 			"birthday": "2001-3-25",
+			"address": "123 Easy Street",
 			"city": "Dallas",
 			"state": "Texas",
 			"zip": "12321",
@@ -382,15 +387,26 @@ app.get('/api/coaches', coaches.get);
 	expects: JWT of a coach
 	returns:
 		{
-			"id": "060D2C20C2C211E785B093803AAE11B2",
-			"firstName": "Moo",
-			"lastName": "Cow",
-			"email": "mootest21@gmail.com",
-			"division": "AAA", // get from /divisions
+			"id": "68D52CC0CAB211E78B25D12F74092FEF",
+			"firstName": "Mahs",
+			"lastName": "Bash",
+			"email": "mehs@mell.com",
+			"coachType": null,
+			"division": "aaa",
 			"phoneNumber": "918-281-4832",
-			"createdAt": "2017-11-06T07:13:43.000Z",
-			"updatedAt": "2017-11-06T07:27:39.000Z",
-			"leagueId": "94753D90C12D11E79BB98B11A4F1E340"
+			"birthday": null,
+			"gender": null,
+			"address": null,
+			"city": "Dallas",
+			"state": "Texas",
+			"zip": null,
+			"validated": 1,
+			"createdAt": "2017-11-16T09:42:07.000Z",
+			"updatedAt": "2017-11-16T09:47:34.000Z",
+			"leagueId": "50759960CA7811E78A2D71DDD7FCC81A",
+			"teamId": null,
+			"teamName": null,
+			"teamDivision": null
 		}
 
 app.delete('/api/coaches/:id', coaches.delete);
@@ -421,12 +437,14 @@ app.post('/api/players', players.players);
 			"phoneNumber": "932-843-2394",
 			"email": "tom@tom.com",
 			"division": "AAA", // get from /divisions  This is also their prior division
+			"gender": "Male",
 			"pitcher": "true",
 			"catcher": "false",
 			"coachsKid": "false",
 			"parentFirstName": "Mary",
 			"parentLastName": "Sue",
-			"teamId": "73DFFB60C1F011E7BC8C7F70B6BAE7A5"
+			"teamId": "73DFFB60C1F011E7BC8C7F70B6BAE7A5",  //can be left blank
+			"tryoutId": Null // can be left blank, is the id of the tryout date that is assigned to the player. this can be obtained from the GET /api/tryouts
 		}
 	returns
 		{
@@ -446,12 +464,14 @@ app.put('/api/players/:id', players.players);
 			"phoneNumber": "932-843-2394",
 			"email": "tom@tom.com",
 			"division": "AAA", // get from /divisions  This is also their prior division
+			"gender": "Female",
 			"pitcher": 1,
 			"catcher": 0,
 			"coachsKid": 0,
 			"parentFirstName": "Mary",
 			"parentLastName": "Sue",
-			"teamId": "73DFFB60C1F011E7BC8C7F70B6BAE7A5"
+			"teamId": "73DFFB60C1F011E7BC8C7F70B6BAE7A5",  //can be left blank
+			"tryoutId": Null // can be left blank, is the id of the tryout date that is assigned to the player.  this can be obtained from the GET /api/tryouts
 		}
 	returns
 		{
@@ -464,46 +484,78 @@ app.get('/api/players', players.getAll);
 	returns:
 	[
     {
-        "id": "18AAC7F0C2C911E7A116094B99CE6F39",
-        "firstName": "Grail",
+        "id": "0F2CC3A0CAB611E7AB08819B83BE0AA5",
+        "firstName": "Simon",
+        "lastName": "Cowell",
+        "teamNumber": "54",
+        "birthday": "2005-05-22T07:00:00.000Z",
+        "leagueAge": 13,
+        "phoneNumber": "932-843-2394",
+        "email": "marice@gmai.com",
+        "division": "aa",
+        "gender": null,
+        "pitcher": 1,
+        "catcher": 0,
+        "coachsKid": 0,
+        "parentFirstName": "Marice",
+        "parentLastName": "Bessi",
+        "tryoutId": null,
+        "tryoutDate": null,
+        "tryoutAddress": null,
+        "createdAt": "2017-11-16T10:08:14.000Z",
+        "updatedAt": "2017-11-16T10:08:14.000Z",
+        "leagueId": "50759960CA7811E78A2D71DDD7FCC81A",
+        "teamId": "24C2AC20CAA211E79126BBB330C2AEAD"
+    },
+    {
+        "id": "B859BE70CAB511E7AB08819B83BE0AA5",
+        "firstName": "Gray",
         "lastName": "Sue",
         "teamNumber": "15",
         "birthday": "2001-03-25T08:00:00.000Z",
         "leagueAge": 16,
         "phoneNumber": "932-843-2394",
         "email": "tom@tom.com",
-        "division": "AAA",   // This is also their prior division
+        "division": "aaa",
+        "gender": null,
         "pitcher": 1,
         "catcher": 0,
         "coachsKid": 0,
         "parentFirstName": "Mary",
         "parentLastName": "Sue",
-        "createdAt": "2017-11-06T08:04:21.000Z",
-        "updatedAt": "2017-11-06T08:04:21.000Z",
-        "leagueId": "94753D90C12D11E79BB98B11A4F1E340",
-        "teamId": "73DFFB60C1F011E7BC8C7F70B6BAE7A5"
+        "tryoutId": null,
+        "tryoutDate": null,
+        "tryoutAddress": null,
+        "createdAt": "2017-11-16T10:05:48.000Z",
+        "updatedAt": "2017-11-16T10:05:48.000Z",
+        "leagueId": "50759960CA7811E78A2D71DDD7FCC81A",
+        "teamId": "162D4DF0CAA211E79126BBB330C2AEAD"
     },
     {
-        "id": "643E9ED0C2C911E7A116094B99CE6F39",
-        "firstName": "Bobby",
-        "lastName": "Sue",
-        "teamNumber": "14",
-        "birthday": "2001-03-25T08:00:00.000Z",
-        "leagueAge": 15,
+        "id": "D51D0670CAB511E7AB08819B83BE0AA5",
+        "firstName": "Bob",
+        "lastName": "White",
+        "teamNumber": "12",
+        "birthday": "2003-05-22T07:00:00.000Z",
+        "leagueAge": 14,
         "phoneNumber": "932-843-2394",
-        "email": "tom@tom.com",
-        "division": "AA",   // This is also their prior division
+        "email": "walter@gmail.com",
+        "division": "aaa",
+        "gender": null,
         "pitcher": 1,
         "catcher": 0,
         "coachsKid": 0,
-        "parentFirstName": "Mary",
-        "parentLastName": "Sue",
-        "createdAt": "2017-11-06T08:06:28.000Z",
-        "updatedAt": "2017-11-06T08:06:28.000Z",
-        "leagueId": "94753D90C12D11E79BB98B11A4F1E340",
-        "teamId": "73DFFB60C1F011E7BC8C7F70B6BAE7A5"
+        "parentFirstName": "Walter",
+        "parentLastName": "White",
+        "tryoutId": null,
+        "tryoutDate": null,
+        "tryoutAddress": null,
+        "createdAt": "2017-11-16T10:06:37.000Z",
+        "updatedAt": "2017-11-16T10:06:37.000Z",
+        "leagueId": "50759960CA7811E78A2D71DDD7FCC81A",
+        "teamId": "162D4DF0CAA211E79126BBB330C2AEAD"
     }
-	]
+]
 
 app.get('/api/players/get-players-for-division/:division', players.getDivision);
 	// Gets all the players of the division
@@ -547,16 +599,16 @@ app.post('/api/formulas', formulas.formulas);
 	expects: any combination of the following form parameters and coach's JWT
 		{
 			"title": "Pitchers",
-			"hittingMechanics": 3,
-			"batSpeed": 6,
-			"batContact": 8,
-			"throwingMechanics": 3,
-			"armStrength": 5,
-			"armAccuracy": 6,
-			"inField": 8,
-			"outField": 3,
-			"baserunMechanics": 8,
-			"baserunSpeed": 3
+			"hittingMechanics": 50,
+			"batSpeed": 60,
+			"batContact": 90,
+			"throwingMechanics": 135,
+			"armStrength": 55,
+			"armAccuracy": 120,
+			"inField": 100,
+			"outField": 68,
+			"baserunMechanics": 140,
+			"baserunSpeed": 120
 		}
 	returns: the id of the formula that was just created.  Limited to 5 formulas for now.
 		"ac067890c2d411e7b609611dfbd33c48"
@@ -566,17 +618,17 @@ app.put('/api/formulas/:id', formulas.formulas);
 	// :id expects the id of the formula that needs editing
 	expects: any combination of the following form parameters and coach's JWT
 		{
-			"title": "PitchersBetter",
-			"hittingMechanics": 3,
-			"batSpeed": 6,
-			"batContact": 8,
-			"throwingMechanics": 3,
-			"armStrength": 5,
-			"armAccuracy": 6,
-			"inField": 8,
-			"outField": 3,
-			"baserunMechanics": 8,
-			"baserunSpeed": 3
+			"title": "Better Pitchers",
+			"hittingMechanics": 50,
+			"batSpeed": 60,
+			"batContact": 90,
+			"throwingMechanics": 135,
+			"armStrength": 55,
+			"armAccuracy": 120,
+			"inField": 100,
+			"outField": 68,
+			"baserunMechanics": 140,
+			"baserunSpeed": 120
 		}
 	returns: 200 code
 
@@ -587,22 +639,22 @@ app.get('/api/formulas', formulas.getAll);
 		[
 			{
 					"id": "0E6EC5E0C2D611E7A025A509ABEBFCD1",
-					"hittingMechanics": 3,
-					"batSpeed": 10,
-					"batContact": 8,
-					"throwingMechanics": 3,
-					"armStrength": 5,
-					"armAccuracy": 6,
-					"inField": 8,
-					"outField": 3,
-					"baserunMechanics": 8,
-					"baserunSpeed": 3,
+					"hittingMechanics": 50,
+					"batSpeed": 60,
+					"batContact": 90,
+					"throwingMechanics": 135,
+					"armStrength": 55,
+					"armAccuracy": 120,
+					"inField": 100,
+					"outField": 68,
+					"baserunMechanics": 140,
+					"baserunSpeed": 120
 					"createdAt": "2017-11-06T09:37:07.000Z",
 					"updatedAt": "2017-11-06T09:37:26.000Z"
 			},
 			{
 					"id": "1B4D0590C2D311E7811AFDC0D03C7FDF",
-					"hittingMechanics": 3,
+					"hittingMechanics": 30,
 					"batSpeed": null,
 					"batContact": null,
 					"throwingMechanics": null,

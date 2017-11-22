@@ -64,6 +64,7 @@ CREATE TABLE `coaches` (
   `firstName` varchar(45) DEFAULT NULL,
   `lastName` varchar(45) DEFAULT NULL,
   `email` varchar(255) DEFAULT NULL,
+  `address` varchar(255) DEFAULT NULL,
   `city` varchar(45) DEFAULT NULL,
   `state` varchar(45) DEFAULT NULL,
   `zip` date DEFAULT NULL,
@@ -91,7 +92,7 @@ CREATE TABLE `coaches` (
 
 LOCK TABLES `coaches` WRITE;
 /*!40000 ALTER TABLE `coaches` DISABLE KEYS */;
-INSERT INTO `coaches` VALUES ('h’,¿ ≤Áã%—/t	/Ô','Puô` xÁä-q›◊¸»\Z',NULL,NULL,'aaa',NULL,NULL,'Mahs','Bash','mehs@mell.com','Dallas','Texas',NULL,'918-281-4832','$2a$10$ScbUyWYQTClh8umbYR58MOG2gbr61tVViIOJBKJWAAjsJHe3Q9auu','',0,1,'2017-11-16 01:42:07','2017-11-16 01:47:34'),('¶¡÷\0 ≤Áã%—/t	/Ô','Puô` xÁä-q›◊¸»\Z',NULL,NULL,'aa',NULL,NULL,'Gosh','Darnit','Gosh@gmail.com','Dallas','Texas',NULL,'918-281-4832','$2a$10$wAeSldokcGthILwHVmTuSemECD0occ/HSTz1omBmzst/bDG87FLf.','',0,1,'2017-11-16 01:43:50','2017-11-16 01:47:49'),('Óû ŒbÁµoÉ Tí˛‹','Puô` xÁä-q›◊¸»\Z',NULL,NULL,'aaa','2001-03-25','0000-00-00','Mahs','Bash','Bastard@gmail.com','Dallas','Texas','0000-00-00','918-281-4832',NULL,'Miami Gophers',0,0,'2017-11-20 18:23:16','2017-11-20 18:23:16');
+INSERT INTO `coaches` VALUES ('h’,¿ ≤Áã%—/t	/Ô','Puô` xÁä-q›◊¸»\Z',NULL,NULL,'aaa',NULL,NULL,'Mahs','Bash','mehs@mell.com',NULL,'Dallas','Texas',NULL,'918-281-4832','$2a$10$ScbUyWYQTClh8umbYR58MOG2gbr61tVViIOJBKJWAAjsJHe3Q9auu','',0,1,'2017-11-16 01:42:07','2017-11-16 01:47:34'),('¶¡÷\0 ≤Áã%—/t	/Ô','Puô` xÁä-q›◊¸»\Z',NULL,NULL,'aa',NULL,NULL,'Gosh','Darnit','Gosh@gmail.com',NULL,'Dallas','Texas',NULL,'918-281-4832','$2a$10$wAeSldokcGthILwHVmTuSemECD0occ/HSTz1omBmzst/bDG87FLf.','',0,1,'2017-11-16 01:43:50','2017-11-16 01:47:49'),('Óû ŒbÁµoÉ Tí˛‹','Puô` xÁä-q›◊¸»\Z',NULL,NULL,'aaa','2001-03-25','0000-00-00','Mahs','Bash','Bastard@gmail.com',NULL,'Dallas','Texas','0000-00-00','918-281-4832',NULL,'Miami Gophers',0,0,'2017-11-20 18:23:16','2017-11-20 18:23:16');
 /*!40000 ALTER TABLE `coaches` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -206,6 +207,8 @@ CREATE TABLE `players` (
   `id` binary(16) NOT NULL,
   `leagueId` binary(16) NOT NULL,
   `teamId` binary(16) NOT NULL,
+  `gender` varchar(15) DEFAULT NULL,
+  `tryoutId` binary(16) DEFAULT NULL,
   `firstName` varchar(45) DEFAULT NULL,
   `lastName` varchar(45) DEFAULT NULL,
   `teamNumber` varchar(45) DEFAULT NULL,
@@ -225,9 +228,11 @@ CREATE TABLE `players` (
   KEY `fk_players_leagues1_idx` (`leagueId`),
   KEY `fk_players_divisions1_idx` (`division`),
   KEY `fk_players_teams1` (`teamId`),
+  KEY `fk_tryout` (`tryoutId`),
   CONSTRAINT `fk_players_divisions1` FOREIGN KEY (`division`) REFERENCES `divisions` (`type`) ON DELETE NO ACTION ON UPDATE NO ACTION,
   CONSTRAINT `fk_players_leagues1` FOREIGN KEY (`leagueId`) REFERENCES `leagues` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `fk_players_teams1` FOREIGN KEY (`teamId`) REFERENCES `teams` (`id`) ON DELETE NO ACTION ON UPDATE CASCADE
+  CONSTRAINT `fk_players_teams1` FOREIGN KEY (`teamId`) REFERENCES `teams` (`id`) ON DELETE NO ACTION ON UPDATE CASCADE,
+  CONSTRAINT `players_ibfk_1` FOREIGN KEY (`tryoutId`) REFERENCES `tryouts` (`id`) ON DELETE NO ACTION ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -237,7 +242,7 @@ CREATE TABLE `players` (
 
 LOCK TABLES `players` WRITE;
 /*!40000 ALTER TABLE `players` DISABLE KEYS */;
-INSERT INTO `players` VALUES (',√† ∂Á´ÅõÉæ\n•','Puô` xÁä-q›◊¸»\Z','$¬¨  ¢Áë&ª≥0¬Æ≠','Simon','Cowell','54','2005-05-22',13,'932-843-2394','marice@gmai.com',1,0,0,'aa','Marice','Bessi','2017-11-16 02:08:14','2017-11-16 02:08:14'),('∏Yæp µÁ´ÅõÉæ\n•','Puô` xÁä-q›◊¸»\Z','-M ¢Áë&ª≥0¬Æ≠','Gray','Sue','15','2001-03-25',16,'932-843-2394','tom@tom.com',1,0,0,'aaa','Mary','Sue','2017-11-16 02:05:48','2017-11-16 02:05:48'),('’p µÁ´ÅõÉæ\n•','Puô` xÁä-q›◊¸»\Z','-M ¢Áë&ª≥0¬Æ≠','Bob','White','12','2003-05-22',14,'932-843-2394','walter@gmail.com',1,0,0,'aaa','Walter','White','2017-11-16 02:06:37','2017-11-16 02:06:37');
+INSERT INTO `players` VALUES (',√† ∂Á´ÅõÉæ\n•','Puô` xÁä-q›◊¸»\Z','$¬¨  ¢Áë&ª≥0¬Æ≠',NULL,NULL,'Simon','Cowell','54','2005-05-22',13,'932-843-2394','marice@gmai.com',1,0,0,'aa','Marice','Bessi','2017-11-16 02:08:14','2017-11-16 02:08:14'),('∏Yæp µÁ´ÅõÉæ\n•','Puô` xÁä-q›◊¸»\Z','-M ¢Áë&ª≥0¬Æ≠',NULL,NULL,'Gray','Sue','15','2001-03-25',16,'932-843-2394','tom@tom.com',1,0,0,'aaa','Mary','Sue','2017-11-16 02:05:48','2017-11-16 02:05:48'),('’p µÁ´ÅõÉæ\n•','Puô` xÁä-q›◊¸»\Z','-M ¢Áë&ª≥0¬Æ≠',NULL,NULL,'Bob','White','12','2003-05-22',14,'932-843-2394','walter@gmail.com',1,0,0,'aaa','Walter','White','2017-11-16 02:06:37','2017-11-16 02:06:37');
 /*!40000 ALTER TABLE `players` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -370,4 +375,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2017-11-20 18:28:51
+-- Dump completed on 2017-11-22 14:51:23
