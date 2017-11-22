@@ -40,7 +40,7 @@ module.exports = {
       tempId = req.user.leagueId
     }
     Promise.using(getConnection(), connection => {
-      const query = "SELECT date, address, createdAt, updatedAt FROM tryouts WHERE leagueId = UNHEX(?)";
+      const query = "SELECT HEX(id) as id, date, address, createdAt, updatedAt FROM tryouts WHERE leagueId = UNHEX(?)";
       return connection.execute(query, [tempId]);
     }).spread(data => res.status(200).json(data))
       .catch(error => res.status(400).json({ message: "Please contact an admin." }));
