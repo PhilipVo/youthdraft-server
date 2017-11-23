@@ -47,7 +47,14 @@ module.exports = {
         "d.date as tryoutDate, d.address as tryoutAddress, a.createdAt, a.updatedAt, HEX(a.leagueId) as leagueId, HEX(teamId) " +
         "as teamId FROM players as a LEFT JOIN tryouts d ON tryoutId = d.id WHERE a.leagueId = UNHEX(?) AND division = ?";
       return connection.execute(query, [req.user.id, req.params.division]);
-    }).spread(data => res.status(200).json(data))
+    }).spread(data => {
+      for (let i = 0; i < data.length; i++) {
+        data[i].pitcher = data[i].pitcher ? "true" : "false";
+        data[i].catcher = data[i].catcher ? "true" : "false";
+        data[i].coachsKid = data[i].coachsKid ? "true" : "false";
+      }
+      res.status(200).json(data)
+    })
       .catch(error => res.status(400).json({ message: "Please contact an admin.", error: error  }));
 	},
   getAll: (req, res) => {
@@ -68,7 +75,14 @@ module.exports = {
         "LEFT JOIN tryouts d ON c.tryoutId = d.id WHERE a.id = UNHEX(?) AND b.leagueId = UNHEX(?) AND c.leagueId = UNHEX(?)";
     }
     Promise.using(getConnection(), connection => connection.execute(query, tempId))
-      .spread(data => res.status(200).json(data))
+      .spread(data => {
+        for (let i = 0; i < data.length; i++) {
+          data[i].pitcher = data[i].pitcher ? "true" : "false";
+          data[i].catcher = data[i].catcher ? "true" : "false";
+          data[i].coachsKid = data[i].coachsKid ? "true" : "false";
+        }
+        res.status(200).json(data)
+      })
       .catch(error => res.status(400).json({ message: "Please contact an admin.", error: error }));
 	},
   players: (req, res) => {
@@ -85,7 +99,6 @@ module.exports = {
       !req.body.leagueAge ||
 			!req.body.phoneNumber ||
       !req.body.email ||
-      !req.body.division ||
       !req.body.gender ||
       !req.body.pitcher ||
       !req.body.catcher ||
@@ -113,14 +126,12 @@ module.exports = {
       coachsKid = 1
     }
 
-    req.body.division = req.body.division.toLowerCase();
-
     // Check if it's updating or if it's creating by seeing if there is an id
     if (req.params.id) {
       requestType = "updatePlayer"
       query = "UPDATE players SET firstName = ?, lastName = ?, teamNumber = ?, birthday = ?, leagueAge = ?, " +
-        "phoneNumber = ?, email = ?, division = ?, gender = ?, pitcher = ?, catcher = ?, coachsKid = ?, parentFirstName = ?, " +
-        "parentLastName = ?, updatedAt = NOW(), teamId = UNHEX(?) WHERE id = UNHEX(?) and leagueId = UNHEX(?) LIMIT 1";
+        "phoneNumber = ?, email = ?, gender = ?, pitcher = ?, catcher = ?, coachsKid = ?, parentFirstName = ?, " +
+        "parentLastName = ?, "
       req.body.id = req.params.id;
       data = [
         req.body.firstName,
@@ -130,35 +141,6 @@ module.exports = {
         req.body.leagueAge,
         req.body.phoneNumber,
         req.body.email,
-        req.body.division,
-        req.body.gender,
-        pitcher,
-        catcher,
-        coachsKid,
-        req.body.parentFirstName,
-        req.body.parentLastName,
-        req.body.teamId,
-        req.body.tryoutId,
-        req.body.id,
-        req.user.id
-      ];
-    } else {
-      query = "INSERT INTO players SET id = UNHEX(?), leagueId = UNHEX(?), teamId = UNHEX(?), firstName = ?, lastName = ?, " +
-        "teamNumber = ?, birthday = ?, leagueAge = ?, phoneNumber = ?, email = ?, division = ?, gender = ?, pitcher = ?, "
-        "catcher = ?, coachsKid = ?, parentFirstName = ?, parentLastName = ?, updatedAt = NOW(), createdAt = NOW()";
-      req.body.id = uuid().replace(/\-/g, "");
-      data = [
-        req.body.id,
-        req.user.id,
-        req.body.teamId,
-        req.body.firstName,
-        req.body.lastName,
-        req.body.teamNumber,
-        req.body.birthday,
-        req.body.leagueAge,
-        req.body.phoneNumber,
-        req.body.email,
-        req.body.division,
         req.body.gender,
         pitcher,
         catcher,
@@ -166,6 +148,57 @@ module.exports = {
         req.body.parentFirstName,
         req.body.parentLastName
       ];
+      if (req.body.division && req.body.division != "") {
+        query += "division = ?, "
+        data.push(req.body.division)
+      }
+      if (req.body.teamId && req.body.teamId != "") {
+        query += "teamId = UNHEX(?), "
+        data.push(req.body.teamId)
+      }
+      if (req.body.tryoutId && req.body.tryoutId != "") {
+        query += "tryoutId = UNHEX(?), "
+        data.push(req.body.tryoutId)
+      }
+      query += "updatedAt = NOW() WHERE id = UNHEX(?) and leagueId = UNHEX(?) LIMIT 1";
+      data.push(req.body.id)
+      data.push(req.user.id)
+      console.log(query);
+    } else {
+      query = "INSERT INTO players SET id = UNHEX(?), leagueId = UNHEX(?), firstName = ?, lastName = ?, teamNumber = ?, " +
+        "birthday = ?, leagueAge = ?, phoneNumber = ?, email = ?, gender = ?, pitcher = ?, catcher = ?, coachsKid = ?, " +
+        "parentFirstName = ?, parentLastName = ?, ";
+      req.body.id = uuid().replace(/\-/g, "");
+      data = [
+        req.body.id,
+        req.user.id,
+        req.body.firstName,
+        req.body.lastName,
+        req.body.teamNumber,
+        req.body.birthday,
+        req.body.leagueAge,
+        req.body.phoneNumber,
+        req.body.email,
+        req.body.gender,
+        pitcher,
+        catcher,
+        coachsKid,
+        req.body.parentFirstName,
+        req.body.parentLastName
+      ];
+      if (req.body.division && req.body.division != "") {
+        query += "division = ?, "
+        data.push(req.body.division)
+      }
+      if (req.body.teamId && req.body.teamId != "") {
+        query += "teamId = UNHEX(?), "
+        data.push(req.body.teamId)
+      }
+      if (req.body.tryoutId && req.body.tryoutId != "") {
+        query += "tryoutId = UNHEX(?), "
+        data.push(req.body.tryoutId)
+      }
+      query += "updatedAt = NOW(), createdAt = NOW()";
     }
     Promise.using(getConnection(), connection => connection.execute(query, data))
       .then(() => {
@@ -175,7 +208,7 @@ module.exports = {
       .catch(error => {
         if (error.status)
           return res.status(error.status).json({ message: error.message });
-        return res.status(400).json({ message: "Please contact an admin." });
+        return res.status(400).json({ message: "Please contact an admin.", error: error});
       });
 	},
   delete: (req, res) => {

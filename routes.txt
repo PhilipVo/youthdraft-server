@@ -438,13 +438,13 @@ app.post('/api/players', players.players);
 			"email": "tom@tom.com",
 			"division": "AAA", // get from /divisions  This is also their prior division
 			"gender": "Male",
-			"pitcher": "true",
-			"catcher": "false",
-			"coachsKid": "false",
+			"pitcher": "true",								// Is a string
+			"catcher": "false",								// Is a string
+			"coachsKid": "false",							// Is a string
 			"parentFirstName": "Mary",
 			"parentLastName": "Sue",
 			"teamId": "73DFFB60C1F011E7BC8C7F70B6BAE7A5",  //can be left blank
-			"tryoutId": Null // can be left blank, is the id of the tryout date that is assigned to the player. this can be obtained from the GET /api/tryouts
+			"tryoutId": "" // can be left blank, is the id of the tryout date that is assigned to the player. this can be obtained from the GET /api/tryouts
 		}
 	returns
 		{
@@ -465,13 +465,13 @@ app.put('/api/players/:id', players.players);
 			"email": "tom@tom.com",
 			"division": "AAA", // get from /divisions  This is also their prior division
 			"gender": "Female",
-			"pitcher": 1,
-			"catcher": 0,
-			"coachsKid": 0,
+			"pitcher": "true",								// Is a string
+			"catcher": "true",								// Is a string
+			"coachsKid": "false",							// Is a string
 			"parentFirstName": "Mary",
 			"parentLastName": "Sue",
 			"teamId": "73DFFB60C1F011E7BC8C7F70B6BAE7A5",  //can be left blank
-			"tryoutId": Null // can be left blank, is the id of the tryout date that is assigned to the player.  this can be obtained from the GET /api/tryouts
+			"tryoutId": "" // can be left blank, is the id of the tryout date that is assigned to the player.  this can be obtained from the GET /api/tryouts
 		}
 	returns
 		{
@@ -494,9 +494,9 @@ app.get('/api/players', players.getAll);
         "email": "marice@gmai.com",
         "division": "aa",
         "gender": null,
-        "pitcher": 1,
-        "catcher": 0,
-        "coachsKid": 0,
+        "pitcher": "true",								// Is a string
+        "catcher": "false",								// Is a string
+        "coachsKid": "false",							// Is a string
         "parentFirstName": "Marice",
         "parentLastName": "Bessi",
         "tryoutId": null,
@@ -518,9 +518,9 @@ app.get('/api/players', players.getAll);
         "email": "tom@tom.com",
         "division": "aaa",
         "gender": null,
-        "pitcher": 1,
-        "catcher": 0,
-        "coachsKid": 0,
+				"pitcher": "true",								// Is a string
+        "catcher": "false",								// Is a string
+        "coachsKid": "false",							// Is a string
         "parentFirstName": "Mary",
         "parentLastName": "Sue",
         "tryoutId": null,
@@ -542,9 +542,9 @@ app.get('/api/players', players.getAll);
         "email": "walter@gmail.com",
         "division": "aaa",
         "gender": null,
-        "pitcher": 1,
-        "catcher": 0,
-        "coachsKid": 0,
+				"pitcher": "true",								// Is a string
+        "catcher": "false",								// Is a string
+        "coachsKid": "false",							// Is a string
         "parentFirstName": "Walter",
         "parentLastName": "White",
         "tryoutId": null,
@@ -554,8 +554,8 @@ app.get('/api/players', players.getAll);
         "updatedAt": "2017-11-16T10:06:37.000Z",
         "leagueId": "50759960CA7811E78A2D71DDD7FCC81A",
         "teamId": "162D4DF0CAA211E79126BBB330C2AEAD"
-    }
-]
+    	}
+		]
 
 app.get('/api/players/get-players-for-division/:division', players.getDivision);
 	// Gets all the players of the division
@@ -564,24 +564,28 @@ app.get('/api/players/get-players-for-division/:division', players.getDivision);
 	returns:
 		[
 			{
-					"id": "18AAC7F0C2C911E7A116094B99CE6F39",
-					"firstName": "Grail",
-					"lastName": "Sue",
-					"teamNumber": "15",
-					"birthday": "2001-03-25T08:00:00.000Z",
-					"leagueAge": 16,
+					"id": "0F2CC3A0CAB611E7AB08819B83BE0AA5",
+					"firstName": "Simon",
+					"lastName": "Cowell",
+					"teamNumber": "54",
+					"birthday": "2005-05-22T07:00:00.000Z",
+					"leagueAge": 13,
 					"phoneNumber": "932-843-2394",
-					"email": "tom@tom.com",
-					"division": "AAA",   // This is also their prior division
-					"pitcher": 1,
-					"catcher": 0,
-					"coachsKid": 0,
-					"parentFirstName": "Mary",
-					"parentLastName": "Sue",
-					"createdAt": "2017-11-06T08:04:21.000Z",
-					"updatedAt": "2017-11-06T08:04:21.000Z",
-					"leagueId": "94753D90C12D11E79BB98B11A4F1E340",
-					"teamId": "73DFFB60C1F011E7BC8C7F70B6BAE7A5"
+					"email": "marice@gmai.com",
+					"division": "aa",
+					"gender": null,
+					"pitcher": "true",								// Is a string
+	        "catcher": "false",								// Is a string
+	        "coachsKid": "false",							// Is a string
+					"parentFirstName": "Marice",
+					"parentLastName": "Bessi",
+					"tryoutId": null,
+					"tryoutDate": null,
+					"tryoutAddress": null,
+					"createdAt": "2017-11-16T10:08:14.000Z",
+					"updatedAt": "2017-11-16T10:08:14.000Z",
+					"leagueId": "50759960CA7811E78A2D71DDD7FCC81A",
+					"teamId": "24C2AC20CAA211E79126BBB330C2AEAD"
 			}
 		]
 

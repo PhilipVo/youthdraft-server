@@ -226,7 +226,6 @@ module.exports = {
       }
       addedQuery = true;
       query += " division = ?";
-      req.body.division = req.body.division.toLowerCase()
       data.push(req.body.division);
     }
     if (!addedQuery) {

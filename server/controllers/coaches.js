@@ -137,8 +137,6 @@ module.exports = {
 		if (!/[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/.test(req.body.email))
 			return res.status(400).json({ message: "Invalid email. Email format should be: email@mailserver.com." });
 
-    req.body.division = req.body.division.toLowerCase();
-
     let query = "UPDATE coaches SET ";
     const data = [];
 
@@ -200,8 +198,6 @@ module.exports = {
     // Validate email:
 		if (!/[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/.test(req.body.email))
 			return res.status(400).json({ message: "Invalid email. Email format should be: email@mailserver.com." });
-
-    req.body.division = req.body.division.toLowerCase();
 
     const password = generator.generate({ length: 10, strict: true, numbers: true  });
     bcrypt.genSaltAsync(10)
@@ -273,8 +269,6 @@ module.exports = {
     // Validate email:
 		if (!/[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/.test(req.body.email))
 			return res.status(400).json({ message: "Invalid email. Email format should be: email@mailserver.com." });
-
-    req.body.division = req.body.division.toLowerCase();
 
     const id = uuid().replace(/\-/g, "")
 
