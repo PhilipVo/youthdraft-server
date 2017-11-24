@@ -54,7 +54,7 @@ module.exports = {
       const query = "SELECT HEX(a.id) as id, firstName, lastName, email, coachType, a.division, phoneNumber, birthday, " +
         "gender, address, city, state, zip, validated, a.createdAt, a.updatedAt, HEX(a.leagueId) as leagueId, " +
         "HEX(teamId) as teamId, b.name as teamName, b.division as teamDivision FROM coaches a LEFT JOIN teams as" +
-        " b ON a.teamId = b.id WHERE a.leagueId = UNHEX(?)";
+        " b ON a.teamId = UNHEX(b.id) WHERE a.leagueId = UNHEX(?)";
       return connection.execute(query, [req.user.id]);
     }).spread(data => res.status(200).json(data))
       .catch(error => res.status(400).json({ message: "Please contact an admin.", error: error }));
@@ -67,7 +67,7 @@ module.exports = {
       const query = "SELECT HEX(a.id) as id, firstName, lastName, email, coachType, a.division, phoneNumber, birthday, " +
         "gender, address, city, state, zip, validated, a.createdAt, a.updatedAt, HEX(a.leagueId) as leagueId, " +
         "HEX(teamId) as teamId, b.name as teamName, b.division as teamDivision FROM coaches a LEFT JOIN teams as " +
-        "b ON a.teamId = b.id WHERE a.leagueId = UNHEX(?) AND a.id = UNHEX(?) LIMIT 1";
+        "b ON a.teamId = UNHEX(b.id) WHERE a.leagueId = UNHEX(?) AND a.id = UNHEX(?) LIMIT 1";
       return connection.execute(query, [req.user.leagueId, req.user.id]);
     }).spread(data => res.status(200).json(data[0]))
       .catch(error => res.status(400).json({ message: "Please contact an admin." }));
@@ -141,7 +141,7 @@ module.exports = {
     const data = [];
 
     if (!req.user.league) {
-      query += "coachType = ?, division = ?, teamId = ?, "
+      query += "coachType = ?, division = ?, teamId = UNHEX(?), "
       data.push(req.body.coachType);
       data.push(req.body.division);
       data.push(req.body.teamId);
@@ -211,8 +211,8 @@ module.exports = {
           "password = ?, validated = 1, updatedAt = NOW(), createdAt = NOW(), teamId = UNHEX(?), leagueId = UNHEX(?)";
         const data = [
           uuid().replace(/\-/g, ""),
-          req.body.coachType,
           req.body.email,
+          req.body.coachType,
           req.body.firstName,
           req.body.lastName,
           req.body.phoneNumber,

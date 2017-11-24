@@ -253,7 +253,7 @@ app.get('/api/coaches/all', coaches.getAll);
 				"firstName": "Mahs",
 				"lastName": "Bash",
 				"email": "mehs@mell.com",
-				"coachType": null,
+				"coachType": null,  // either "Assistant" or "Head"
 				"division": "AAA",
 				"phoneNumber": "918-281-4832",
 				"birthday": null,
@@ -275,7 +275,7 @@ app.get('/api/coaches/all', coaches.getAll);
 				"firstName": "Gosh",
 				"lastName": "Darnit",
 				"email": "Gosh@gmail.com",
-				"coachType": null,
+				"coachType": null,  // either "Assistant" or "Head"
 				"division": "AA",
 				"phoneNumber": "918-281-4832",
 				"birthday": null,
@@ -334,7 +334,7 @@ app.put('/api/coaches/:id', coaches.coaches);
 			{
 				"division": "AAA", // get from /divisions
 				"teamId": "162D4DF0CAA211E79126BBB330C2AEAD",
-				"coachType": "Head"
+				"coachType": "Head"  // either "Assistant" or "Head"
 			}
 		With the JWT of a coach:
 			{
@@ -360,7 +360,7 @@ app.post('/api/coaches', coaches.createCoaches);
 			"firstName":"Mahs",
 			"lastName": "Bash",
 			"phoneNumber": "918-281-4832",
-			"coachType": "Head",
+			"coachType": "Head",  // either "Assistant" or "Head"
 			"division": "AAA", // get from /divisions
 			"gender": "Male",
 			"birthday": "2001-3-25",
@@ -391,7 +391,7 @@ app.get('/api/coaches', coaches.get);
 			"firstName": "Mahs",
 			"lastName": "Bash",
 			"email": "mehs@mell.com",
-			"coachType": null,
+			"coachType": null,   // either "Assistant" or "Head"
 			"division": "AAA",
 			"phoneNumber": "918-281-4832",
 			"birthday": null,
