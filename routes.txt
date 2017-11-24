@@ -188,14 +188,14 @@ app.get('/api/teams', teams.getAll);
 			{
 					"id": "162D4DF0CAA211E79126BBB330C2AEAD",
 					"name": "Astros niners",
-					"division": "aaa", // get from /divisions
+					"division": "AAA", // get from /divisions
 					"createdAt": "2017-11-16T07:45:16.000Z",
 					"updatedAt": "2017-11-16T07:45:16.000Z"
 			},
 			{
 					"id": "24C2AC20CAA211E79126BBB330C2AEAD",
 					"name": "Athletics",
-					"division": "aa", // get from /divisions
+					"division": "AA", // get from /divisions
 					"createdAt": "2017-11-16T07:45:40.000Z",
 					"updatedAt": "2017-11-16T07:45:40.000Z"
 			}
@@ -254,7 +254,7 @@ app.get('/api/coaches/all', coaches.getAll);
 				"lastName": "Bash",
 				"email": "mehs@mell.com",
 				"coachType": null,
-				"division": "aaa",
+				"division": "AAA",
 				"phoneNumber": "918-281-4832",
 				"birthday": null,
 				"gender": null,
@@ -276,7 +276,7 @@ app.get('/api/coaches/all', coaches.getAll);
 				"lastName": "Darnit",
 				"email": "Gosh@gmail.com",
 				"coachType": null,
-				"division": "aa",
+				"division": "AA",
 				"phoneNumber": "918-281-4832",
 				"birthday": null,
 				"gender": null,
@@ -354,7 +354,7 @@ app.put('/api/coaches/:id', coaches.coaches);
 app.post('/api/coaches', coaches.createCoaches);
 	// Create a coach from the league admin screen.  Is Pre-validated and will send an email containing
 	// the coaches password to the coach's email address. Also takes a second or two to reply.  Emails seem to take a while.
-	expects: Either JWT of league admin or a coach
+	expects: JWT of league admin
 		{
 			"email": "mehs@mell.com",
 			"firstName":"Mahs",
@@ -392,7 +392,7 @@ app.get('/api/coaches', coaches.get);
 			"lastName": "Bash",
 			"email": "mehs@mell.com",
 			"coachType": null,
-			"division": "aaa",
+			"division": "AAA",
 			"phoneNumber": "918-281-4832",
 			"birthday": null,
 			"gender": null,
@@ -492,7 +492,7 @@ app.get('/api/players', players.getAll);
         "leagueAge": 13,
         "phoneNumber": "932-843-2394",
         "email": "marice@gmai.com",
-        "division": "aa",
+        "division": "AA",
         "gender": null,
         "pitcher": "true",								// Is a string
         "catcher": "false",								// Is a string
@@ -516,7 +516,7 @@ app.get('/api/players', players.getAll);
         "leagueAge": 16,
         "phoneNumber": "932-843-2394",
         "email": "tom@tom.com",
-        "division": "aaa",
+        "division": "AAA",
         "gender": null,
 				"pitcher": "true",								// Is a string
         "catcher": "false",								// Is a string
@@ -540,7 +540,7 @@ app.get('/api/players', players.getAll);
         "leagueAge": 14,
         "phoneNumber": "932-843-2394",
         "email": "walter@gmail.com",
-        "division": "aaa",
+        "division": "AAA",
         "gender": null,
 				"pitcher": "true",								// Is a string
         "catcher": "false",								// Is a string
@@ -572,7 +572,7 @@ app.get('/api/players/get-players-for-division/:division', players.getDivision);
 					"leagueAge": 13,
 					"phoneNumber": "932-843-2394",
 					"email": "marice@gmai.com",
-					"division": "aa",
+					"division": "AA",
 					"gender": null,
 					"pitcher": "true",								// Is a string
 	        "catcher": "false",								// Is a string
@@ -775,7 +775,7 @@ app.get('/api/stats', stats.getAll);
 					"baserunMechanicsNotes": null,
 					"baserunSpeed": null,
 					"baserunSpeedNotes": null,
-					"division": "aaa",        // get from /divisions
+					"division": "AAA",        // get from /divisions
 					"createdAt": "2017-11-16T10:30:42.000Z",
 					"updatedAt": "2017-11-16T10:30:42.000Z"
 			},
@@ -805,7 +805,7 @@ app.get('/api/stats', stats.getAll);
 					"baserunMechanicsNotes": "Runs well",
 					"baserunSpeed": 7,
 					"baserunSpeedNotes": "Pretty fast",
-					"division": "aaa",            // get from /divisions
+					"division": "AAA",            // get from /divisions
 					"createdAt": "2017-11-16T10:33:31.000Z",
 					"updatedAt": "2017-11-16T10:33:31.000Z"
 			}

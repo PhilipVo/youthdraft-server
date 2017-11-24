@@ -191,6 +191,9 @@ module.exports = {
 		)
 			return res.status(400).json({ message: "All form fields are required." });
 
+    if (req.user.leagueId)
+      return res.status(400).json({ message: "Only a league Admin can add a pre verified coach" });
+
     // Validate phone number:
 		if (!/^\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$/.test(req.body.phoneNumber))
 			return res.status(400).json({ message: "Invalid phone number.  Phone number format should be XXX-XXX-XXXX" });
@@ -205,7 +208,7 @@ module.exports = {
 			.then(hash => Promise.using(getConnection(), connection => {
         const query = "INSERT INTO coaches SET id = UNHEX(?), email = ?, coachType = ?, firstName = ?, lastName = ?, " +
           "phoneNumber = ?, division = ?, birthday = ?, gender = ?, address = ?, city = ?, state = ?, zip =?, " +
-          "password = ?, teamId = ?, validated = 1, updatedAt = NOW(), createdAt = NOW(), leagueId = UNHEX(?)";
+          "password = ?, validated = 1, updatedAt = NOW(), createdAt = NOW(), teamId = UNHEX(?), leagueId = UNHEX(?)";
         const data = [
           uuid().replace(/\-/g, ""),
           req.body.coachType,
@@ -235,7 +238,7 @@ module.exports = {
       })
       .then(info => res.status(200).json())
       .catch(error => {
-        return res.status(400).json({ message: "Please contact an admin." });
+        return res.status(400).json({ message: "Please contact an admin.", error: error });
       });
   },
   register: (req, res) => {
