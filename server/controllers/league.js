@@ -45,8 +45,8 @@ module.exports = {
 
     Promise.using(getConnection(), connection => {
       // Check if unique email and leagueId combo entered:
-      const query = "SELECT leagueName, email FROM leagues WHERE email = ? LIMIT 1";
-      return connection.execute(query, [req.body.email]);
+      const query = "SELECT leagueName, email FROM leagues WHERE email = ? AND id != UNHEX(?) LIMIT 1";
+      return connection.execute(query, [req.body.email, req.user.id]);
     }).spread(user => {
       if (user.length === 1 && user[0].leagueName == req.body.leagueName)
         throw { status: 400, message: 'Email already associated with this league.'}
