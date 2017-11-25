@@ -7,7 +7,6 @@ module.exports = function xlsxConverter(pathToXlsx) {
   return new Promise((resolve, reject) => {
     let workbook;
     const ext = path.extname(pathToXlsx)
-    console.log(ext);
     if (ext == ".xlsx") {
       try {
         workbook = xlsx.readFile(pathToXlsx);
@@ -27,7 +26,6 @@ module.exports = function xlsxConverter(pathToXlsx) {
         workbook = data;
       });
     }
-
     return new Promise((resolve, reject) => {
       csv(xlsx.utils.sheet_to_csv(
         workbook.Sheets[workbook.SheetNames[0]],

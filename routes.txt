@@ -8,7 +8,7 @@ Also all routes will return a 200 code upon success.
 
 app.post('/league/register', league.register);
 	// First emails Chris' email upon completion. Passwords are emailed upon youthdraft validation.
-	Expects:
+	Expects:  Also expects three files as either csv or xlsx.  The fieldnames are players, teams, and coaches
 		{
 			"email": "moo@moo.com",
 			"firstName": "Bob",
@@ -16,10 +16,19 @@ app.post('/league/register', league.register);
 			"leagueName": "Rivercats",
 			"phoneNumber": "123-456-7890",
 			"city": "Mehicos",
-			"state": "CA"
+			"state": "CA",
+			"tryouts": [ // up to five
+				{
+					"date": "2017-12-5", // YYYY-MM-DD
+					"address": "2215 Mine Street, Mine CA 95835" // String
+				},
+				{
+					"date": "2017-12-8",
+					"address": "2215 Mine Street, Mine CA 95835"
+				}
+			]
 		}
-	returns:
-		"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImIyMTgwNjkwYzEyMTExZTdiMWU1OTNmMDM0ZWIxMTBhIiwidXNlciI6ImxlYWd1ZSIsImlhdCI6MTUwOTc3MzU4Mn0.7PkyiA8Uhz94ZV5amAuRdQYmlGvG7n6khQiydBPwvTU"
+	returns: 200 code.
 
 app.get('/leagues', league.getAll);
 	// to get all the leagues for selecting from the drop down

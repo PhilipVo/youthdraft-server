@@ -1,4 +1,5 @@
 const 	league 					= require('../controllers/league.js'),
+				leagueRegister 	= require('../controllers/league-registration.js'),
 				coaches 				= require('../controllers/coaches.js'),
 				players 				= require('../controllers/players.js'),
 				tryouts				 	= require('../controllers/tryouts.js'),
@@ -6,7 +7,8 @@ const 	league 					= require('../controllers/league.js'),
 				formulas			 	= require('../controllers/formulas.js'),
 				stats					 	= require('../controllers/stats.js'),
 				divisions				= require('../controllers/divisions.js'),
-				upload					= require('./multer.js');
+				upload					= require('./multer.js'),
+				uploadFields		= [{ name: 'teams', maxCount: 1 }, { name: 'coaches', maxCount: 1 }, { name: 'players', maxCount: 1 }];
 
 module.exports = function (app) {
 
@@ -14,7 +16,8 @@ module.exports = function (app) {
 	//                  League Admin routes                   //
 	////////////////////////////////////////////////////////////
 
-	app.post('/league/register', league.register); // returns JWT for the league admin
+	app.post('/league/register', leagueRegister.register);
+	app.post('/test', upload.fields(uploadFields), leagueRegister.tester)
 	app.get('/leagues', league.getAll); // to get all the leagues for selecting from the drop down, contains, league name, city, state, and league id
 	app.post('/api/league/validate', league.validate); // for youthdraft to verify a league
 	app.post('/api/league/reject', league.reject); // for youthdraft to unverify and delete a league

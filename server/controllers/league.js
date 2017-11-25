@@ -180,51 +180,6 @@ module.exports = {
 			return res.status(400).json({ message: "Please contact an admin.", error: error});
 		});
 	},
-  register: (req, res) => {
-		// Expecting all form data.
-		if (
-			!req.body.email ||
-			!req.body.firstName ||
-			!req.body.lastName ||
-			!req.body.leagueName ||
-			!req.body.phoneNumber ||
-			!req.body.city ||
-      !req.body.state
-		)
-			return res.status(400).json({ message: "All form fields are required." });
-
-    // Validate phone number as XXX-XXX-XXXX:
-    if (!/^\(?([0-9]{3})\)?[-]?([0-9]{3})[-]?([0-9]{4})$/.test(req.body.phoneNumber))
-      return res.status(400).json({ message: "Invalid phone number. Phone number format should be: XXX-XXX-XXXX." });
-
-		// Validate email:
-		if (!/[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/.test(req.body.email))
-			return res.status(400).json({ message: "Invalid email. Email format should be: email@mailserver.com." });
-
-		const id = uuid().replace(/\-/g, "");
-
-		Promise.using(getConnection(), connection => {
-			const data = [id, req.body.email, req.body.firstName, req.body.lastName, req.body.leagueName, req.body.phoneNumber, req.body.city, req.body.state];
-			const query = "INSERT INTO leagues SET id = UNHEX(?), email = ?, firstName = ?, lastName = ?, isLive = 0, " +
-				"leagueName = ?, phoneNumber = ?, city = ?, state = ?, createdAt = NOW(), updatedAt = NOW()";
-			return connection.execute(query, data);
-		}).spread(data => {
-      const youthDraftToken = jwt.sign({
-				id: id,
-        youthdraftKey: serverKeys.youthdraftKey,
-				iat: Math.floor(Date.now() / 1000) - 30
-			}, jwtKey);
-      // url/accept and url/decline
-      nodeMailer.mailOptions.to = serverKeys.youthdraftEmail
-      nodeMailer.mailOptions.subject = "Please verify this team"
-      nodeMailer.mailOptions.html = "This is the team: " + req.body.leagueName + " in " + req.body.city + ", " + req.body.state + ", JWT: " + youthDraftToken
-      return nodeMailer.transporter.sendMail(nodeMailer.mailOptions)
-		}).catch(error => {
-			if (error["code"] == "ER_DUP_ENTRY")
-				return res.status(400).json({ message: "Email already associated with this league." });
-			return res.status(400).json({ message: "Please contact an admin." });
-		});
-	},
   validate: (req, res) => {
     if (!req.user.youthdraftKey || req.user.youthdraftKey != serverKeys.youthdraftKey)
       return res.status(400).json({ message: "This link is not valid." });

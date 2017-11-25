@@ -31,7 +31,6 @@ module.exports = {
         if (jsonArray.length > 0) {
           const query = "INSERT INTO coaches (firstName, lastName, division, email, phoneNumber, " +
             "id, leagueId, createdAt, updatedAt) VALUES ?"
-          console.log(jsonArray);
           return connection.query(query, [jsonArray]);
         }
         else return Promise.resolve();
@@ -152,13 +151,13 @@ module.exports = {
         "gender = ?, address = ?, city = ?, state = ?, zip =?, "
       data.push(req.body.email);
       data.push(req.body.firstName);
-      data.push(req.user.lastName);
-      data.push(req.user.phoneNumber);
+      data.push(req.body.lastName);
+      data.push(req.body.phoneNumber);
       data.push(req.body.birthday);
-      data.push(req.user.gender);
-      data.push(req.user.address);
-      data.push(req.user.city);
-      data.push(req.user.state);
+      data.push(req.body.gender);
+      data.push(req.body.address);
+      data.push(req.body.city);
+      data.push(req.body.state);
       data.push(req.body.zip);
       data.push(req.user.id);
       data.push(req.user.leagueId);
