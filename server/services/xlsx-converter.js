@@ -34,7 +34,7 @@ module.exports = function xlsxConverter(pathToXlsx) {
           if (err) {
             return reject(err);
           }
-          resolve(records.splice(1));
+          resolve(records);
       });
     }).then(jsonValueArrays => {
       resolve(jsonValueArrays);
