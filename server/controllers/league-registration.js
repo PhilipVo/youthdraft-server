@@ -46,31 +46,34 @@ module.exports = {
 		const id = uuid().replace(/\-/g, "");
 
     let tempTryouts = []
-    if (req.body.tryouts.length > 5) {
-      files.forEach(filepath => {fs.unlink(filepath, err => {})});
-      return res.status(400).json({ message: "Only up to 5 tryout dates are allowed.", tryouts: req.body.tryouts});
-    }
+    if (req.body.tryouts) {
+      req.body.tryouts = JSON.parse(req.body.tryouts)
+      if (req.body.tryouts.length > 5) {
+        files.forEach(filepath => {fs.unlink(filepath, err => {})});
+        return res.status(400).json({ message: "Only up to 5 tryout dates are allowed.", tryouts: req.body.tryouts});
+      }
 
-    for (var i = 0; i < req.body.tryouts.length; i++) {
-      if (!req.body.tryouts[i].date || !req.body.tryouts[i].address) {
-        files.forEach(filepath => {fs.unlink(filepath, err => {})});
-        return res.status(400).json({ message: "Tryouts need both a date and an address.", tryouts: req.body.tryouts });
+      for (var i = 0; i < req.body.tryouts.length; i++) {
+        if (!req.body.tryouts[i].date || !req.body.tryouts[i].address) {
+          files.forEach(filepath => {fs.unlink(filepath, err => {})});
+          return res.status(400).json({ message: "Tryouts need both a date and an address.", tryouts: req.body.tryouts });
+        }
+        if (!/^\(?([0-9]{4})\)?[-]?(0?[1-9]|1[0-2])[-]?(0?[1-9]|[12]\d|30|31)$/.test(req.body.tryouts[i].date)) {
+          files.forEach(filepath => {fs.unlink(filepath, err => {})});
+          return res.status(400).json({ message: "Dates should be in the format of YYYY-MM-DD.", tryouts: req.body.tryouts });
+        }
+        tempTryouts[i] = [req.body.tryouts[i].date.substring(4,6), req.body.tryouts[i].address];
+        tempTryouts[i].push("UNHEX(REPLACE(UUID(), '-', ''))");
+        tempTryouts[i].push(new Buffer(id, "hex"));
+        tempTryouts[i].push("NOW()");
+        tempTryouts[i].push("NOW()");
       }
-      if (!/^\(?([0-9]{4})\)?[-]?([0-9]{2})[-]?([0-9]{2})$/.test(req.body.tryouts[i].date)) {
-        files.forEach(filepath => {fs.unlink(filepath, err => {})});
-        return res.status(400).json({ message: "Dates should be in the format of YYYY-MM-DD.", tryouts: req.body.tryouts });
-      }
-      tempTryouts[i] = [req.body.tryouts[i].date, req.body.tryouts[i].address];
-      tempTryouts[i].push("UNHEX(REPLACE(UUID(), '-', ''))");
-      tempTryouts[i].push(new Buffer(id, "hex"));
-      tempTryouts[i].push("NOW()");
-      tempTryouts[i].push("NOW()");
+      req.body.tryouts = tempTryouts;
     }
-    req.body.tryouts = tempTryouts;
 
     if (!req.files.players || !req.files.coaches || !req.files.teams) {
       files.forEach(filepath => {fs.unlink(filepath, err => {})});
-      return res.status(400).json({message: "Please try fsing your .csv or .xlsx file for players again"})
+      return res.status(400).json({message: "Please try uploading your .csv or .xlsx file for players again"})
     }
 
     Promise.using(getConnection(), connection => connection.query("SELECT * FROM divisions"))
@@ -130,8 +133,16 @@ module.exports = {
         if (jsonArray[i].length > 10)
           jsonArray[i].splice(10)
 
+        if (!/^\(?([0-9]{4})\)?[-/.]?(0?[1-9]|1[0-2])[-/.]?(0?[1-9]|[12]\d|30|31)$/.test(jsonArray[i][2]))
+          throw { status: 400, message: "Player's DOB should be in the format of YYYY-MM-DD or YYYY/MM/DD or YYYY.MM.DD. Please check cell C" + (i + 1)};
+        if (!/^([0-9]|[1-9][0-9]|100)$/.test(jsonArray[i][4]))
+          throw { status: 400, message: "Player's league age should be less than 100. Please check cell E" + (i + 1)};
         if (!divisionHash[jsonArray[i][5]])
           throw { status: 400, message: "Players should be assigned one of the following divisions: " + divisionString + ". Please check cell F" + (i + 1)};
+        if (!/^\(?([0-9]{3})\)?[-]?([0-9]{3})[-]?([0-9]{4})$/.test(jsonArray[i][8]))
+          throw { status: 400, message: "Invalid player's phone number. Phone number format should be: XXX-XXX-XXXX. Please check cell I" + (i + 1)};
+    		if (!/[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/.test(jsonArray[i][9]))
+          throw { status: 400, message: "Invalid player's email. Email format should be: email@mailserver.com. Please check cell J" + (i + 1)};
 
         jsonArray[i].push("UNHEX(REPLACE(UUID(), '-', ''))");
         jsonArray[i].push(new Buffer(id, "hex"));
@@ -166,8 +177,23 @@ module.exports = {
         if (jsonArray[i].length > 12)
           jsonArray[i].splice(12)
 
+        if (!/^\(?([0-9]{4})\)?[-/.]?(0?[1-9]|1[0-2])[-/.]?(0?[1-9]|[12]\d|30|31)$/.test(jsonArray[i][2]))
+          throw { status: 400, message: "Coach's DOB should be in the format of YYYY-MM-DD or YYYY/MM/DD or YYYY.MM.DD. Please check cell C" + (i + 1)};
+        if (!/[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/.test(jsonArray[i][4]))
+          throw { status: 400, message: "Coach's email is invalid. Email format should be: email@mailserver.com. Please check cell E" + (i + 1)};
+        if (!/^\(?([0-9]{3})\)?[-]?([0-9]{3})[-]?([0-9]{4})$/.test(jsonArray[i][5]))
+          throw { status: 400, message: "Coach's phone number is invalid. Phone number format should be: XXX-XXX-XXXX. Please check cell F" + (i + 1)};
+        if (!/^[0-9]{5}(?:[-\s][0-9]{4})?$/.test(jsonArray[i][9]))
+          throw { status: 400, message: "Coach's zip code is invalid. Zip code format should be: XXXXX or XXXXX-XXXX or XXXXX XXXX. Please check cell J" + (i + 1)};
         if (!divisionHash[jsonArray[i][10]])
           throw { status: 400, message: "Coaches should be assigned one of the following divisions: " + divisionString + ". Please check cell K" + (i + 1)};
+        if (jsonArray[i][11].toLowerCase().includes("assistant")) {
+          jsonArray[i][11] = "Assistant"
+        } else if (jsonArray[i][11].toLowerCase().includes("head")) {
+          jsonArray[i][11] = "Head"
+        } else {
+          throw { status: 400, message: "Coaches should either be a head coach or an assistant coach.  Please check cell L" + (i + 1)};
+        }
 
         jsonArray[i].push("UNHEX(REPLACE(UUID(), '-', ''))");
         jsonArray[i].push(new Buffer(id, "hex"));
