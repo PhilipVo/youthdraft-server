@@ -166,8 +166,8 @@ module.exports = {
         if (jsonArray[i].length > 12)
           jsonArray[i].splice(12)
 
-        if (!divisionHash[jsonArray[i][5]])
-          throw { status: 400, message: "Coaches should be assigned one of the following divisions: " + divisionString + ". Please check cell F" + (i + 1)};
+        if (!divisionHash[jsonArray[i][10]])
+          throw { status: 400, message: "Coaches should be assigned one of the following divisions: " + divisionString + ". Please check cell K" + (i + 1)};
 
         jsonArray[i].push("UNHEX(REPLACE(UUID(), '-', ''))");
         jsonArray[i].push(new Buffer(id, "hex"));
