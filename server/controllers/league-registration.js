@@ -209,7 +209,6 @@ module.exports = {
 			}, jwtKey);
       return nodeMailer.leagueEmail(req.body)
     }).then(email => {
-      console.log("works");
       req.body.emailHtml = email
       files.forEach(filepath => {fs.unlink(filepath, err => {})});
       return res.status(200).json(req.body);
