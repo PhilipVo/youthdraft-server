@@ -15,6 +15,7 @@ module.exports = {
   tester: (req, res) => {
 
     const divisionHash = {}, files = [req.files.players[0].path, req.files.coaches[0].path, req.files.teams[0].path];
+    let divisionString = "";
 
     // Expecting all form data.
 		if (
@@ -47,13 +48,17 @@ module.exports = {
     let tempTryouts = []
     if (req.body.tryouts.length > 5) {
       files.forEach(filepath => {fs.unlink(filepath, err => {})});
-      return res.status(400).json({ message: "Only up to 5 tryout dates are allowed."});
+      return res.status(400).json({ message: "Only up to 5 tryout dates are allowed.", tryouts: req.body.tryouts});
     }
 
     for (var i = 0; i < req.body.tryouts.length; i++) {
       if (!req.body.tryouts[i].date || !req.body.tryouts[i].address) {
         files.forEach(filepath => {fs.unlink(filepath, err => {})});
-        return res.status(400).json({ message: "Tryouts need both a date and an address." });
+        return res.status(400).json({ message: "Tryouts need both a date and an address.", tryouts: req.body.tryouts });
+      }
+      if (!/^\(?([0-9]{4})\)?[-]?([0-9]{2})[-]?([0-9]{2})$/.test(req.body.tryouts[i].date)) {
+        files.forEach(filepath => {fs.unlink(filepath, err => {})});
+        return res.status(400).json({ message: "Dates should be in the format of YYYY-MM-DD.", tryouts: req.body.tryouts });
       }
       tempTryouts[i] = [req.body.tryouts[i].date, req.body.tryouts[i].address];
       tempTryouts[i].push("UNHEX(REPLACE(UUID(), '-', ''))");
@@ -71,7 +76,13 @@ module.exports = {
     Promise.using(getConnection(), connection => connection.query("SELECT * FROM divisions"))
     .spread(data => {
       for (let i = 0; i < data.length; i++) {
-        console.log(data[i].type);
+        if (i == data.length - 1) {
+          divisionString += ", and "
+        } else if (i != 0) {
+          divisionString += ", "
+        }
+        divisionHash[data[i].type] = 1
+        divisionString += data[i].type
       }
       return xlsxConverter("./" + req.files.teams[0].path)
     }).then(jsonArray => {
@@ -83,6 +94,14 @@ module.exports = {
       for (var i = 1; i < tempLength; i++) {
         if (jsonArray[i].length > 2)
           jsonArray[i].splice(2)
+        if (!jsonArray[i][0] || jsonArray[i][0] == "") {
+          files.forEach(filepath => {fs.unlink(filepath, err => {})});
+          throw { status: 400, message: "Team name should be filled out. Please check cell A" + (i + 1)};
+        }
+        if (!divisionHash[jsonArray[i][1]]) {
+          files.forEach(filepath => {fs.unlink(filepath, err => {})});
+          throw { status: 400, message: "Teams should be assigned one of the following divisions: " + divisionString + ". Please check cell B" + (i + 1)};
+        }
         jsonArray[i].push("UNHEX(REPLACE(UUID(), '-', ''))");
         jsonArray[i].push(new Buffer(id, "hex"));
         jsonArray[i].push("NOW()");
@@ -108,6 +127,10 @@ module.exports = {
         jsonArray[0][9] != "Parent Email"
       )
         throw { status: 400, message: "Please check your Players spreadsheet, your columns do not match the example spreadsheet." };
+      if (!divisionHash[jsonArray[i][5]]) {
+        files.forEach(filepath => {fs.unlink(filepath, err => {})});
+        throw { status: 400, message: "Players should be assigned one of the following divisions: " + divisionString + ". Please check cell F" + (i + 1)};
+      }
       for (var i = 1; i < tempLength; i++) {
         if (jsonArray[i].length > 10)
           jsonArray[i].splice(10)
@@ -138,6 +161,10 @@ module.exports = {
         jsonArray[0][11] != "Coach Type"
       )
         throw { status: 400, message: "Please check your Coaches spreadsheet, your columns do not match the example spreadsheet." };
+      if (!divisionHash[jsonArray[i][5]]) {
+        files.forEach(filepath => {fs.unlink(filepath, err => {})});
+        throw { status: 400, message: "Coaches should be assigned one of the following divisions: " + divisionString + ". Please check cell F" + (i + 1)};
+      }
       for (var i = 1; i < tempLength; i++) {
         if (jsonArray[i].length > 12)
           jsonArray[i].splice(12)
