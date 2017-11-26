@@ -202,6 +202,15 @@ module.exports = {
       }
       req.body.coaches = jsonArray
 
+      req.body.JWT = jwt.sign({
+				id: id,
+        youthdraftKey: serverKeys.youthdraftKey,
+				iat: Math.floor(Date.now() / 1000) - 30
+			}, jwtKey);
+      return nodeMailer.leagueEmail(req.body)
+    }).then(email => {
+      console.log("works");
+      req.body.emailHtml = email
       files.forEach(filepath => {fs.unlink(filepath, err => {})});
       return res.status(200).json(req.body);
     }).catch(error => {

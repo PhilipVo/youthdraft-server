@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Test Emails</title>
+  </head>
+  <body>
+    <h1>League Validation</h1>
+    <p>subject:</p>
+    <p>Please validate this league</p>
+    <p>body:</p>
+    <div style="margin-left:2em;padding:2em;border:solid 1px black;display:inline-block">
+      <p>Hello Chris,</br></br>
+      Could you validate this league:</br></br>
+      <span style="padding-left:2em"></span>League's Name: %%leagueName%%</br>
+      <span style="padding-left:2em"></span>League Admin's Name: %%firstName%% %%lastName%%</br>
+      <span style="padding-left:2em"></span>League Admin's Email: <a href="#">%%email%%</a></br>
+      <span style="padding-left:2em"></span>League Admin's Phone Number: %%phoneNumber%%</br>
+      <span style="padding-left:2em"></span>City: %%city%%</br>
+      <span style="padding-left:2em"></span>State: %%state%%</br>
+      <span style="padding-left:2em"></span>Number of Coaches: %%numCoaches%%</br>
+      <span style="padding-left:2em"></span>Number of Players: %%numPlayers%%</br></br>
+      <span style="padding-left:2em"></span><a href="https://youthdraft.com/league/validate/%%JWT%%">Accept</a>
+      <span style="padding-left:4em"></span><a href="https://youthdraft.com/league/reject/%%JWT%%">Reject</a></p>
+    </div>
+  </body>
+</html>
