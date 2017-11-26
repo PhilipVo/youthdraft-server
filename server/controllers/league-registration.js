@@ -94,14 +94,12 @@ module.exports = {
       for (var i = 1; i < tempLength; i++) {
         if (jsonArray[i].length > 2)
           jsonArray[i].splice(2)
-        if (!jsonArray[i][0] || jsonArray[i][0] == "") {
-          files.forEach(filepath => {fs.unlink(filepath, err => {})});
+
+        if (!jsonArray[i][0] || jsonArray[i][0] == "")
           throw { status: 400, message: "Team name should be filled out. Please check cell A" + (i + 1)};
-        }
-        if (!divisionHash[jsonArray[i][1]]) {
-          files.forEach(filepath => {fs.unlink(filepath, err => {})});
+        if (!divisionHash[jsonArray[i][1]])
           throw { status: 400, message: "Teams should be assigned one of the following divisions: " + divisionString + ". Please check cell B" + (i + 1)};
-        }
+
         jsonArray[i].push("UNHEX(REPLACE(UUID(), '-', ''))");
         jsonArray[i].push(new Buffer(id, "hex"));
         jsonArray[i].push("NOW()");
@@ -127,18 +125,20 @@ module.exports = {
         jsonArray[0][9] != "Parent Email"
       )
         throw { status: 400, message: "Please check your Players spreadsheet, your columns do not match the example spreadsheet." };
-      if (!divisionHash[jsonArray[i][5]]) {
-        files.forEach(filepath => {fs.unlink(filepath, err => {})});
-        throw { status: 400, message: "Players should be assigned one of the following divisions: " + divisionString + ". Please check cell F" + (i + 1)};
-      }
+
       for (var i = 1; i < tempLength; i++) {
         if (jsonArray[i].length > 10)
           jsonArray[i].splice(10)
+
+        if (!divisionHash[jsonArray[i][5]])
+          throw { status: 400, message: "Players should be assigned one of the following divisions: " + divisionString + ". Please check cell F" + (i + 1)};
+
         jsonArray[i].push("UNHEX(REPLACE(UUID(), '-', ''))");
         jsonArray[i].push(new Buffer(id, "hex"));
         jsonArray[i].push("NOW()");
         jsonArray[i].push("NOW()");
       }
+      console.log("players done");
       req.body.players = jsonArray
       return Promise.resolve();
     }).then(() => xlsxConverter("./" + req.files.coaches[0].path))
@@ -161,15 +161,15 @@ module.exports = {
         jsonArray[0][11] != "Coach Type"
       )
         throw { status: 400, message: "Please check your Coaches spreadsheet, your columns do not match the example spreadsheet." };
-      if (!divisionHash[jsonArray[i][5]]) {
-        files.forEach(filepath => {fs.unlink(filepath, err => {})});
-        throw { status: 400, message: "Coaches should be assigned one of the following divisions: " + divisionString + ". Please check cell F" + (i + 1)};
-      }
+
       for (var i = 1; i < tempLength; i++) {
         if (jsonArray[i].length > 12)
           jsonArray[i].splice(12)
+
+        if (!divisionHash[jsonArray[i][5]])
+          throw { status: 400, message: "Coaches should be assigned one of the following divisions: " + divisionString + ". Please check cell F" + (i + 1)};
+
         jsonArray[i].push("UNHEX(REPLACE(UUID(), '-', ''))");
-        // jsonArray[i].push("UNHEX(" + req.user.id + ")");
         jsonArray[i].push(new Buffer(id, "hex"));
         jsonArray[i].push("NOW()");
         jsonArray[i].push("NOW()");
