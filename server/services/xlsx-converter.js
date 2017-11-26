@@ -10,13 +10,7 @@ module.exports = function xlsxConverter(pathToXlsx) {
     if (ext == ".xlsx") {
       try {
         workbook = xlsx.readFile(pathToXlsx);
-        fs.unlink(pathToXlsx, error => {
-          return reject(error);
-        });
       } catch (error) {
-        fs.unlink(pathToXlsx, error => {
-          return reject(error);
-        });
         return reject(error);
       }
     } else {
