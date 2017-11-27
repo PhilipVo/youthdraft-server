@@ -214,7 +214,7 @@ module.exports = {
       nodeMailer.mailOptions.subject = "Please verify this league"
       nodeMailer.mailOptions.html = email
       return nodeMailer.transporter.sendMail(nodeMailer.mailOptions)
-    })then(() => {
+    }).then(() => {
       files.forEach(filepath => {fs.unlink(filepath, err => {})});
       return res.status(200).json(req.body);
     }).catch(error => {
