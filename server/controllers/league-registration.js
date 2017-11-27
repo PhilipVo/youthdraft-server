@@ -209,7 +209,12 @@ module.exports = {
 			}, jwtKey);
       return nodeMailer.leagueEmail(req.body)
     }).then(email => {
-      req.body.emailHtml = email
+      // url/accept and url/decline
+      nodeMailer.mailOptions.to = serverKeys.youthdraftEmail
+      nodeMailer.mailOptions.subject = "Please verify this league"
+      nodeMailer.mailOptions.html = email
+      return nodeMailer.transporter.sendMail(nodeMailer.mailOptions)
+    })then(() => {
       files.forEach(filepath => {fs.unlink(filepath, err => {})});
       return res.status(200).json(req.body);
     }).catch(error => {

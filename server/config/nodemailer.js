@@ -19,7 +19,7 @@ const leagueEmail = data => {
     console.log("works2");
     let replaced = ""
     const html = `<p>Hello Chris,</br></br>
-    Could you validate this league:</br></br>
+    Please validate this league:</br></br>
     <span style="padding-left:2em"></span>League's Name: %%leagueName%%</br>
     <span style="padding-left:2em"></span>League Admin's Name: %%firstName%% %%lastName%%</br>
     <span style="padding-left:2em"></span>League Admin's Email: <a href="#">%%email%%</a></br>
