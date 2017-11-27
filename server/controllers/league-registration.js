@@ -202,10 +202,6 @@ module.exports = {
       }
       req.body.coaches = jsonArray
 
-      req.body.numCoaches = req.body.coaches.length - 1
-      req.body.numPlayers = req.body.teams.length - 1
-      req.body.numTeams = req.body.players.length - 1
-
       req.body.JWT = jwt.sign({
 				id: id,
         youthdraftKey: serverKeys.youthdraftKey,
@@ -218,7 +214,7 @@ module.exports = {
       nodeMailer.mailOptions.subject = "Please verify this league"
       nodeMailer.mailOptions.html = email
       return nodeMailer.transporter.sendMail(nodeMailer.mailOptions)
-    }).then(() => {
+    })then(() => {
       files.forEach(filepath => {fs.unlink(filepath, err => {})});
       return res.status(200).json(req.body);
     }).catch(error => {
