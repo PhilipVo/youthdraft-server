@@ -29,6 +29,7 @@ app.use(function(req,res,next){
 });
 app.use(helmet());
 app.use(bp.json());
+app.use(express.static(path.join(__dirname, 'dist')));
 app.use('/api', expressJWT({ secret: jwtKey }));
 
 const routes = require('./server/config/routes.js')(app);
