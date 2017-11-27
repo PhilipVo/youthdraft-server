@@ -8,7 +8,7 @@ const 	league 					= require('../controllers/league.js'),
 				stats					 	= require('../controllers/stats.js'),
 				divisions				= require('../controllers/divisions.js'),
 				upload					= require('./multer.js'),
-				uploadFields		= [{ name: 'teams', maxCount: 1 }];
+				uploadFields		= [{ name: 'teams', maxCount: 1 }, { name: 'players', maxCount: 1 }];
 
 module.exports = function (app) {
 

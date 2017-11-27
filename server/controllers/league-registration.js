@@ -58,10 +58,10 @@ module.exports = {
           files.forEach(filepath => {fs.unlink(filepath, err => {})});
           return res.status(400).json({ message: "Tryouts need both a date and an address.", tryouts: req.body.tryouts });
         }
-        if (!/^\(?([0-9]{4})\)?[-]?(0?[1-9]|1[0-2])[-]?(0?[1-9]|[12]\d|30|31)$/.test(req.body.tryouts[i].date)) {
-          files.forEach(filepath => {fs.unlink(filepath, err => {})});
-          return res.status(400).json({ message: "Dates should be in the format of YYYY-MM-DD.", tryouts: req.body.tryouts });
-        }
+        // if (!/^\(?([0-9]{4})\)?[-]?(0?[1-9]|1[0-2])[-]?(0?[1-9]|[12]\d|30|31)$/.test(req.body.tryouts[i].date)) {
+        //   files.forEach(filepath => {fs.unlink(filepath, err => {})});
+        //   return res.status(400).json({ message: "Dates should be in the format of YYYY-MM-DD.", tryouts: req.body.tryouts });
+        // }
         tempTryouts[i] = [req.body.tryouts[i].date.substring(4,6), req.body.tryouts[i].address];
         tempTryouts[i].push("UNHEX(REPLACE(UUID(), '-', ''))");
         tempTryouts[i].push(new Buffer(id, "hex"));
