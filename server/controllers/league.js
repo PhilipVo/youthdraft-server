@@ -24,7 +24,10 @@ module.exports = {
       const query = "SELECT leagueName, city, state FROM leagues";
       return connection.execute(query);
     }).spread(data => res.status(200).json(data))
-      .catch(error => res.status(400).json({ message: "Please contact an admin." }));
+      .catch(error => {
+        console.log(error)
+        return res.status(400).json({ message: "Please contact an admin." })
+      });
   },
   update: (req, res) => {
     // Expecting all form data.
