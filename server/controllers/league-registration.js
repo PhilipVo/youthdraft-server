@@ -202,14 +202,18 @@ module.exports = {
       }
       req.body.coaches = jsonArray
 
+      req.body.numCoaches = req.body.coaches.length - 1
+      req.body.numPlayers = req.body.teams.length - 1
+      req.body.numTeams = req.body.players.length - 1
+
       req.body.JWT = jwt.sign({
 				id: id,
         youthdraftKey: serverKeys.youthdraftKey,
 				iat: Math.floor(Date.now() / 1000) - 30
 			}, jwtKey);
-      return nodeMailer.leagueEmail(req.body)
+      return nodeMailer.verifyLeagueEmail(req.body)
     }).then(email => {
-      // url/accept and url/decline
+      nodeMailer.mailOptions.attachments = [{path: req.files.coaches[0].path}, {path: req.files.players[0].path}, {path: req.files.teams[0].path}]
       nodeMailer.mailOptions.to = serverKeys.youthdraftEmail
       nodeMailer.mailOptions.subject = "Please verify this league"
       nodeMailer.mailOptions.html = email

@@ -356,7 +356,7 @@ app.put('/api/coaches/:id', coaches.coaches);
 				"address": "123 Easy Street",
 				"city": "Dallas",
 				"state": "Texas",
-				"zip": "12321",
+				"zip": "12321"
 			}
 	returns 200 code
 

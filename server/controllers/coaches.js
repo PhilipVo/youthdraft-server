@@ -112,34 +112,39 @@ module.exports = {
   coaches: (req, res) => {
     // Expecting all form data.
 		if (
-			(!req.body.email && req.user.league) ||
-      (!req.body.coachType && !req.user.league)||
-			(!req.body.firstName && req.user.league) ||
-			(!req.body.lastName && req.user.league) ||
-			(!req.body.phoneNumber && req.user.league) ||
-      (!req.body.teamId && !req.user.league)||
-      (!req.body.division && !req.user.league)||
-      (!req.body.birthday && req.user.league) ||
-      (!req.body.gender && req.user.league) ||
-      (!req.body.address && req.user.league) ||
-			(!req.body.city && req.user.league) ||
-      (!req.body.state && req.user.league) ||
-      (!req.body.zip && req.user.league)
+      req.user.leagueId && (
+  			(!req.body.email) ||
+  			(!req.body.firstName) ||
+  			(!req.body.lastName) ||
+  			(!req.body.phoneNumber) ||
+        (!req.body.birthday) ||
+        (!req.body.gender) ||
+        (!req.body.address) ||
+  			(!req.body.city) ||
+        (!req.body.state) ||
+        (!req.body.zip)
+      ) || !req.user.leagueId && (
+        (!req.body.coachType) ||
+        (!req.body.teamId) ||
+        (!req.body.division)
+      )
 		)
 			return res.status(400).json({ message: "All form fields are required." });
 
-    // Validate phone number:
-		if (!/^\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$/.test(req.body.phoneNumber))
-			return res.status(400).json({ message: "Invalid phone number.  Phone number format should be XXX-XXX-XXXX" });
+    if (req.user.leagueId) {
+      // Validate phone number:
+  		if (!/^\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$/.test(req.body.phoneNumber))
+  			return res.status(400).json({ message: "Invalid phone number.  Phone number format should be XXX-XXX-XXXX" });
 
-    // Validate email:
-		if (!/[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/.test(req.body.email))
-			return res.status(400).json({ message: "Invalid email. Email format should be: email@mailserver.com." });
+      // Validate email:
+  		if (!/[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/.test(req.body.email))
+  			return res.status(400).json({ message: "Invalid email. Email format should be: email@mailserver.com." });
+    }
 
     let query = "UPDATE coaches SET ";
     const data = [];
 
-    if (!req.user.league) {
+    if (!req.user.leagueId) {
       query += "coachType = ?, division = ?, teamId = UNHEX(?), "
       data.push(req.body.coachType);
       data.push(req.body.division);
@@ -163,6 +168,7 @@ module.exports = {
       data.push(req.user.leagueId);
     }
     query += "updatedAt = NOW() WHERE id = UNHEX(?) and leagueId = UNHEX(?) LIMIT 1";
+    console.log(query, data);
     Promise.using(getConnection(), connection => connection.execute(query, data))
     .then(() => res.end())
     .catch(error => {
@@ -421,17 +427,19 @@ module.exports = {
         if (data.affectedRows == 0)
           throw { status: 400, message: "This coach has already been validated." };
 
-        const query = "SELECT * FROM coaches WHERE id = UNHEX(?) " +
-          "AND leagueId = UNHEX(?) LIMIT 1";
+        const query = `SELECT a.firstName firstName, a.lastName lastName, a.email email, leagueName, b.city leagueCity,
+          b.state leagueState, b.email leagueEmail FROM coaches a LEFT JOIN leagues b ON a.leagueId = b.id WHERE
+          a.id = UNHEX(?) AND leagueId = UNHEX(?) LIMIT 1`;
         return connection.execute(query, [req.params.id, req.user.id]);
-      }))
-      .spread(data => {
+      })).spread(data => {
+        data[0].password = password;
+        return [nodeMailer.verifyCoachEmail(data[0]), data];
+      }).spread((email, data) => {
         nodeMailer.mailOptions.to = data[0].email
         nodeMailer.mailOptions.subject = "Your account has been validated"
-        nodeMailer.mailOptions.html = "<p>" + data[0].firstName + " " + data[0].lastName + " here is your password: " + password + "</p>"
+        nodeMailer.mailOptions.html = email
         return nodeMailer.transporter.sendMail(nodeMailer.mailOptions)
-      })
-      .then(info => res.status(200).json())
+      }).then(info => res.status(200).json())
       .catch(error => {
         if (error.status)
           return res.status(error.status).json({ message: error.message });
@@ -440,9 +448,29 @@ module.exports = {
   },
   delete: (req, res) => {
     Promise.using(getConnection(), connection => {
-      const query = "DELETE FROM coaches WHERE id = UNHEX(?) AND leagueId = UNHEX(?)";
+      const query = `SELECT a.firstName firstName, a.lastName lastName, a.email email, leagueName, b.city leagueCity,
+        b.state leagueState, b.email leagueEmail FROM coaches a LEFT JOIN leagues b ON a.leagueId = b.id WHERE
+        a.id = UNHEX(?) AND leagueId = UNHEX(?) LIMIT 1`;
       return connection.execute(query, [req.params.id, req.user.id]);
-    }).spread(data => res.status(200).json())
-      .catch(error => res.status(400).json({ message: "Please contact an admin." }));
+    })
+    .spread(data => Promise.using(getConnection(), connection => {
+      if (data.length == 0)
+        throw { status: 400, message: "This coach does not exist." };
+
+      const query = "DELETE FROM coaches WHERE id = UNHEX(?) AND leagueId = UNHEX(?)";
+      return [connection.execute(query, [req.params.id, req.user.id]), data];
+    })).spread((dataDel, data) => {
+      return [nodeMailer.rejectCoachEmail(data[0]), data]
+    }).spread((email, data) => {
+      nodeMailer.mailOptions.to = data[0].email
+      nodeMailer.mailOptions.subject = "Your account has been rejected/terminated"
+      nodeMailer.mailOptions.html = email
+      return nodeMailer.transporter.sendMail(nodeMailer.mailOptions)
+    }).then(info => res.status(200).json())
+    .catch(error => {
+      if (error.status)
+        return res.status(error.status).json({ message: error.message });
+      return res.status(400).json({ message: "Please contact an admin."});
+    });
 	}
 }

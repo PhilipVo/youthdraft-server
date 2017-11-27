@@ -222,19 +222,18 @@ module.exports = {
       return connection.execute(query, [req.user.id]);
     })
     .spread(data => Promise.using(getConnection(), connection => {
-      if (data.affectedRows == 0)
-        throw { status: 400, message: "This coach has already been validated." };
-
-      const query = "DELETE FROM leagues WHERE id = UNHEX(?) AND isLive != 1 LIMIT 1";
+      if (data.length == 0)
+        throw { status: 400, message: "This league does not exist." };
+      const query = "DELETE FROM leagues WHERE id = UNHEX(?) LIMIT 1";
       return [connection.execute(query, [req.user.id]), data];
-    }))
-    .spread((dataDel, data) => {
+    })).spread((dataDel, data) => {
+      return [nodeMailer.verifyLeagueEmail(data), data]
+    }).spread((email, data) => {
       nodeMailer.mailOptions.to = data[0].email
       nodeMailer.mailOptions.subject = "Your account has been rejected"
-      nodeMailer.mailOptions.html = "<p>Your League has been rejected</p>"
+      nodeMailer.mailOptions.html = email
       return nodeMailer.transporter.sendMail(nodeMailer.mailOptions)
-    })
-    .then(info => res.status(200).json())
+    }).then(info => res.status(200).json())
     .catch(error => {
       if (error.status)
         return res.status(error.status).json({ message: error.message });
