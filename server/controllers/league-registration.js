@@ -210,37 +210,33 @@ module.exports = {
 			const data2 = [id, req.body.email, req.body.firstName, req.body.lastName, req.body.leagueName, req.body.phoneNumber, req.body.city, req.body.state];
 			const query2 = "INSERT INTO leagues SET id = UNHEX(?), email = ?, firstName = ?, lastName = ?, isLive = 0, " +
 				"leagueName = ?, phoneNumber = ?, city = ?, state = ?, createdAt = NOW(), updatedAt = NOW()";
-			// return Promise.using(getConnection(), connection => connection.execute(query2, data2));
-      return Promise.resolve();
+			return Promise.using(getConnection(), connection => connection.execute(query2, data2));
     }).then(() => Promise.map(passwordArray, function(password) {
       return bcrypt.hashAsync(password, 10)
     })).then(hashes => {
       for (let i = 0; i < hashes.length; i++) {
         req.body.coaches[i].push(hashes[i])
       }
-      if (req.body.coaches > 0) {
+      if (req.body.coaches.length > 0) {
         const query = "INSERT INTO coaches (firstName, lastName, birthday, gender, email, phoneNumber, address, " +
           "city, state, zip, division, coachType, id, leagueId, createdAt, updatedAt, validated, password) VALUES ?"
-        console.log([req.body.coaches]);
-        return Promise.using(getConnection(), connection => connection.execute(query, [req.body.coaches]));
+        return Promise.using(getConnection(), connection => connection.query(query, [req.body.coaches]));
       }
       else return Promise.resolve();
     }).then(() => {
       if (req.body.teams.length > 0) {
+        jsonArray = req.body.teams
         const query = "INSERT INTO teams (name, division, id, leagueId, createdAt, updatedAt) VALUES ?";
-        console.log(query);
-        console.log([req.body.teams]);
-        return Promise.using(getConnection(), connection => connection.execute(query, [req.body.teams]));
+        return Promise.using(getConnection(), connection => connection.query(query, [jsonArray]));
       }
       else return Promise.resolve();
     }).then(() => {
-      console.log("moo3");
-      if (req.body.players > 0) {
-        const query = "INSERT INTO players (firstName, lastName, teamNumber, birthday, leagueAge, phoneNumber, " +
-          "email, pitcher, catcher, coachsKid, division, parentFirstName, parentLastName, id, teamId, leagueId, " +
-          "createdAt, updatedAt) VALUES ?";
-        console.log(query);
-        return Promise.using(getConnection(), connection => connection.execute(query, [req.body.players]));
+      if (req.body.players.length > 0) {
+        const query = "INSERT INTO players (firstName, lastName, birthday, gender, leagueAge, division, " +
+          "parentFirstName, parentLastName, phoneNumber, email, id, leagueId, createdAt, updatedAt) VALUES ?";
+          console.log(query);
+          console.log(req.body.players);
+        return Promise.using(getConnection(), connection => connection.query(query, [req.body.players]));
       }
       else return Promise.resolve();
     }).then(() => {

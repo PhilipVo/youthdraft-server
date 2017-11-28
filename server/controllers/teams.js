@@ -29,6 +29,12 @@ module.exports = {
         }
         else return Promise.resolve();
       }).then(() => {
+        if (jsonArray.length > 0) {
+          const query = "INSERT INTO teams (name, division, id, leagueId, createdAt, updatedAt) VALUES ?";
+          return Promise.using(getConnection(), connection => connection.query(query, [jsonArray.slice(1)]));
+        }
+        else return Promise.resolve();
+      }).then(() => {
         return res.status(200).json({message: "works"})
 			}).catch(error => {
         return res.status(400).json(error);
