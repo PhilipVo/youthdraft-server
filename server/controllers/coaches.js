@@ -243,7 +243,7 @@ module.exports = {
         req.body.leagueName = data[0].leagueName;
         req.body.leagueCity = data[0].city;
         req.body.leagueState = data[0].state;
-        return nodeMailer.createCoachEmail(req.body, nodeMailer.mailOptions);
+        return nodeMailer.createCoachEmail(req.body);
       }).then(email => nodeMailer.transporter.sendMail(email))
       .then(info => res.status(200).json())
       .catch(error => {

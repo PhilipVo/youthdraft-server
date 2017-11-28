@@ -260,17 +260,22 @@ module.exports = {
           tempData.password = passwordArray[i]
           coachArray.push(tempData)
         }
-        return Promise.map(coachArray, coach => {
-          console.log(coach);
-          return nodeMailer.createCoachEmail(coach, nodeMailer.mailOptions)
-        })
-        .map(data => {
-          console.log(data);
-          return nodeMailer.transporter.sendMail(data)
-        })
+
+        // var promises = [];
+        // for (let i = 0; i < coachArray.length; i++ ) {
+        //   promises.push(nodeMailer.createCoachEmail(coachArray[i], nodeMailer.mailOptions));
+        // }
+        // Promise.all(promises).then(data => {
+        //   console.log(data);
+        // });
+
+
+        return Promise.map(coachArray, coach => nodeMailer.createCoachEmail(coach))
+        .map(data => nodeMailer.transporter.sendMail(data))
       }
       else return Promise.resolve();
-    }).then(() => {
+    }).then((data) => {
+      console.log(data);
       req.body.JWT = jwt.sign({
 				id: id,
         youthdraftKey: serverKeys.youthdraftKey,

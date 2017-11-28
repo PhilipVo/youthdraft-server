@@ -7,7 +7,7 @@ const transporter = nodemailer.createTransport({
 });
 
 const mailOptions = {
-  from: '"Youth Draft" <mootest21@gmail.com>', // sender address
+  from: '"Youth Draft" <' + key.smtp + '>', // sender address
   to: '', // list of receivers
   subject: '', // Subject line
   html: ''// plain text body
@@ -147,9 +147,10 @@ const resetCoachPassword = data => {
   })
 };
 
-const createCoachEmail = (data, options) => {
+const createCoachEmail = (data) => {
   return new Promise((resolve, reject) => {
-    let replaced = ""
+    const tempOptions = {};
+    let replaced = "";
     const html = `<p><span style="padding-bottom:2em;display:block">Hello %%firstName%% %%lastName%%,</span>
     <span style="padding-bottom:0.5em;display:block">Congratulations! Your account at Youthdraft.com was created
       by %%leagueFirstName%% %%leagueLastName%% for %%leagueName%% at %%leagueCity%%, %%leagueState%%.  You can
@@ -164,10 +165,11 @@ const createCoachEmail = (data, options) => {
       replaced = v.replace(/\%\%/g,"");
       return data[replaced] || replaced;
     });
-    options.email = parts.join("");
-    options.subject = "Your coaching account at YouthDraft.com was created";
-    options.to = data.email;
-    resolve(options)
+    tempOptions.from = mailOptions.from
+    tempOptions.html = parts.join("");
+    tempOptions.subject = "Your coaching account at YouthDraft.com was created";
+    tempOptions.to = data.email;
+    resolve(tempOptions)
   })
 };
 
