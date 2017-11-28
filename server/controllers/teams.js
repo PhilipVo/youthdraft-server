@@ -9,11 +9,11 @@ module.exports = {
     xlsxConverter("./" + req.file.path).then(jsonArray => {
       const tempLength = jsonArray.length;
       for (var i = 0; i < tempLength; i++) {
-        if (jsonArray[i].length < 5) {
+        if (jsonArray[i].length < 2) {
           return res.status(400).json({message: "Please check your spreadsheet, you are missing a column."});
         }
-        if (jsonArray[i].length > 5) {
-          jsonArray[i].splice(5)
+        if (jsonArray[i].length > 2) {
+          jsonArray[i].splice(2)
         }
         jsonArray[i].push("UNHEX(REPLACE(UUID(), '-', ''))");
         // jsonArray[i].push("UNHEX(" + req.user.id + ")");
@@ -23,9 +23,9 @@ module.exports = {
       }
       Promise.using(getConnection(), connection => {
         if (jsonArray.length > 0) {
-          const query = "INSERT INTO teams (firstName, lastName, division, email, phoneNumber, " +
-            "id, leagueId, createdAt, updatedAt) VALUES ?"
-          return connection.query(query, [jsonArray]);
+          const query = "INSERT INTO teams (name, division, id, leagueId, createdAt, updatedAt) VALUES ?";
+          console.log([jsonArray.slice(1)]);
+          return connection.query(query, [jsonArray.slice(1)]);
         }
         else return Promise.resolve();
       }).then(() => {

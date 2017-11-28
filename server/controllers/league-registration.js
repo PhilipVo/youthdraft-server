@@ -198,6 +198,7 @@ module.exports = {
         jsonArray[i].push(new Buffer(id, "hex"));
         jsonArray[i].push("NOW()");
         jsonArray[i].push("NOW()");
+        jsonArray[i].push(1);
       }
       req.body.coaches = jsonArray.slice(1)
 
@@ -217,20 +218,18 @@ module.exports = {
       for (let i = 0; i < hashes.length; i++) {
         req.body.coaches[i].push(hashes[i])
       }
-      console.log(req.body.coaches);
       if (req.body.coaches > 0) {
         const query = "INSERT INTO coaches (firstName, lastName, birthday, gender, email, phoneNumber, address, " +
-          "city, state, zip, division, coachType, id, leagueId, createdAt, updatedAt, password) VALUES ?";
-          console.log(query);
-        return Promise.using(getConnection(), connection => connection.execute(query, req.body.coaches));
+          "city, state, zip, division, coachType, id, leagueId, createdAt, updatedAt, validated, password) VALUES ?"
+        console.log([req.body.coaches]);
+        return Promise.using(getConnection(), connection => connection.execute(query, [req.body.coaches]));
       }
       else return Promise.resolve();
     }).then(() => {
-      console.log("moo2");
-      if (req.body.teams > 0) {
-        const query = "INSERT INTO teams (firstName, lastName, division, email, phoneNumber, " +
-          "id, leagueId, createdAt, updatedAt) VALUES ?";
+      if (req.body.teams.length > 0) {
+        const query = "INSERT INTO teams (name, division, id, leagueId, createdAt, updatedAt) VALUES ?";
         console.log(query);
+        console.log([req.body.teams]);
         return Promise.using(getConnection(), connection => connection.execute(query, [req.body.teams]));
       }
       else return Promise.resolve();
@@ -260,15 +259,6 @@ module.exports = {
           tempData.password = passwordArray[i]
           coachArray.push(tempData)
         }
-
-        // var promises = [];
-        // for (let i = 0; i < coachArray.length; i++ ) {
-        //   promises.push(nodeMailer.createCoachEmail(coachArray[i], nodeMailer.mailOptions));
-        // }
-        // Promise.all(promises).then(data => {
-        //   console.log(data);
-        // });
-
 
         return Promise.map(coachArray, coach => nodeMailer.createCoachEmail(coach))
         .map(data => nodeMailer.transporter.sendMail(data))
