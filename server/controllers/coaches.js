@@ -243,13 +243,8 @@ module.exports = {
         req.body.leagueName = data[0].leagueName;
         req.body.leagueCity = data[0].city;
         req.body.leagueState = data[0].state;
-        return nodeMailer.resetCoachPassword(req.body);
-      }).then(email => {
-        nodeMailer.mailOptions.to = req.body.email;
-        nodeMailer.mailOptions.subject = "Your coaching account at YouthDraft.com was created";
-        nodeMailer.mailOptions.html = email
-        return nodeMailer.transporter.sendMail(nodeMailer.mailOptions)
-      })
+        return nodeMailer.createCoachEmail(req.body, nodeMailer.mailOptions);
+      }).then(email => nodeMailer.transporter.sendMail(email))
       .then(info => res.status(200).json())
       .catch(error => {
         return res.status(400).json({ message: "Please contact an admin.", error: error });

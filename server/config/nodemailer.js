@@ -54,7 +54,7 @@ const rejectLeague = data => {
   })
 };
 
-const verifyLeagueEmail = data => {
+const verifyLeague = data => {
   return new Promise((resolve, reject) => {
     let replaced = ""
     const html = `<p><span style="padding-bottom:2em;display:block">Hello %%firstName%% %%lastName%%,</span>
@@ -147,7 +147,7 @@ const resetCoachPassword = data => {
   })
 };
 
-const createCoachEmail = data => {
+const createCoachEmail = (data, options) => {
   return new Promise((resolve, reject) => {
     let replaced = ""
     const html = `<p><span style="padding-bottom:2em;display:block">Hello %%firstName%% %%lastName%%,</span>
@@ -164,15 +164,22 @@ const createCoachEmail = data => {
       replaced = v.replace(/\%\%/g,"");
       return data[replaced] || replaced;
     });
-    resolve(parts.join(""))
+    options.email = parts.join("");
+    options.subject = "Your coaching account at YouthDraft.com was created";
+    options.to = data.email;
+    resolve(options)
   })
 };
 
 module.exports =  {
   transporter,
   mailOptions,
-  verifyLeagueEmail,
+  leagueEmail,
+  rejectLeague,
+  verifyLeague,
+  resetLeaguePassword,
   rejectCoachEmail,
   verifyCoachEmail,
-  resetCoachPassword
+  resetCoachPassword,
+  createCoachEmail
 }

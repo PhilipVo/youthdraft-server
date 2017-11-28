@@ -107,7 +107,7 @@ module.exports = {
         jsonArray[i].push("NOW()");
         jsonArray[i].push("NOW()");
       }
-      req.body.teams = jsonArray
+      req.body.teams = jsonArray.slice(1)
       return Promise.resolve();
     }).then(() => xlsxConverter("./" + req.files.players[0].path))
     .then( jsonArray => {
@@ -148,8 +148,7 @@ module.exports = {
         jsonArray[i].push("NOW()");
         jsonArray[i].push("NOW()");
       }
-      console.log("players done");
-      req.body.players = jsonArray
+      req.body.players = jsonArray.slice(1)
       return Promise.resolve();
     }).then(() => xlsxConverter("./" + req.files.coaches[0].path))
     .then( jsonArray => {
@@ -200,57 +199,78 @@ module.exports = {
         jsonArray[i].push("NOW()");
         jsonArray[i].push("NOW()");
       }
-      req.body.coaches = jsonArray
+      req.body.coaches = jsonArray.slice(1)
 
       req.body.numCoaches = req.body.coaches.length - 1
       req.body.numPlayers = req.body.teams.length - 1
       req.body.numTeams = req.body.players.length - 1
 
 
-			const data = [id, req.body.email, req.body.firstName, req.body.lastName, req.body.leagueName, req.body.phoneNumber, req.body.city, req.body.state];
-			const query = "INSERT INTO leagues SET id = UNHEX(?), email = ?, firstName = ?, lastName = ?, isLive = 0, " +
+			const data2 = [id, req.body.email, req.body.firstName, req.body.lastName, req.body.leagueName, req.body.phoneNumber, req.body.city, req.body.state];
+			const query2 = "INSERT INTO leagues SET id = UNHEX(?), email = ?, firstName = ?, lastName = ?, isLive = 0, " +
 				"leagueName = ?, phoneNumber = ?, city = ?, state = ?, createdAt = NOW(), updatedAt = NOW()";
-			return connection.execute(query, data);
-    }).spread(data => Promise.map(passwordArray, function(password) {
+			// return Promise.using(getConnection(), connection => connection.execute(query2, data2));
+      return Promise.resolve();
+    }).then(() => Promise.map(passwordArray, function(password) {
       return bcrypt.hashAsync(password, 10)
-    })).spread(hashes => {
+    })).then(hashes => {
       for (let i = 0; i < hashes.length; i++) {
         req.body.coaches[i].push(hashes[i])
       }
-      if (jsonArray.length > 0) {
-        const query = `INSERT INTO coaches (firstName, lastName, birthday, gender, email, phoneNumber, address, " +
+      console.log(req.body.coaches);
+      if (req.body.coaches > 0) {
+        const query = "INSERT INTO coaches (firstName, lastName, birthday, gender, email, phoneNumber, address, " +
           "city, state, zip, division, coachType, id, leagueId, createdAt, updatedAt, password) VALUES ?";
-        return connection.query(query, [req.body.coaches]);
+          console.log(query);
+        return Promise.using(getConnection(), connection => connection.execute(query, req.body.coaches));
       }
       else return Promise.resolve();
-    }).spread(data => {
-      if (jsonArray.length > 0) {
+    }).then(() => {
+      console.log("moo2");
+      if (req.body.teams > 0) {
         const query = "INSERT INTO teams (firstName, lastName, division, email, phoneNumber, " +
           "id, leagueId, createdAt, updatedAt) VALUES ?";
-        return connection.query(query, [req.body.teams]);
+        console.log(query);
+        return Promise.using(getConnection(), connection => connection.execute(query, [req.body.teams]));
       }
       else return Promise.resolve();
-    }).spread(data => {
-      if (jsonArray.length > 0) {
+    }).then(() => {
+      console.log("moo3");
+      if (req.body.players > 0) {
         const query = "INSERT INTO players (firstName, lastName, teamNumber, birthday, leagueAge, phoneNumber, " +
           "email, pitcher, catcher, coachsKid, division, parentFirstName, parentLastName, id, teamId, leagueId, " +
           "createdAt, updatedAt) VALUES ?";
-        return connection.query(query, [req.body.players]);
+        console.log(query);
+        return Promise.using(getConnection(), connection => connection.execute(query, [req.body.players]));
       }
       else return Promise.resolve();
-    }).spread(data => {
-      for (let i = 0; i < hashes.length; i++) {
-        req.body.coaches[i].push(passwordArray[i])
+    }).then(() => {
+      if (passwordArray.length > 0) {
+        const coachArray = []
+        for (let i = 0; i < passwordArray.length; i++) {
+          const tempData = {}
+          tempData.firstName = req.body.coaches[i][0],
+          tempData.lastName = req.body.coaches[i][1],
+          tempData.email = req.body.coaches[i][4],
+          tempData.leagueFirstName = req.body.firstName,
+          tempData.leagueLastName = req.body.lastName,
+          tempData.leagueCity = req.body.city,
+          tempData.leagueState = req.body.state,
+          tempData.leagueName = req.body.leagueName,
+          tempData.password = passwordArray[i]
+          coachArray.push(tempData)
+        }
+        return Promise.map(coachArray, coach => {
+          console.log(coach);
+          return nodeMailer.createCoachEmail(coach, nodeMailer.mailOptions)
+        })
+        .map(data => {
+          console.log(data);
+          return nodeMailer.transporter.sendMail(data)
+        })
       }
-      return Promise.map(req.body.coaches, function(coach) {
-        return [nodeMailer.leagueEmail(coach), coach.email]
-      })
-    }).map(data => {
-      nodeMailer.mailOptions.to = data[1];
-      nodeMailer.mailOptions.subject = "Your coaching account at YouthDraft.com was created";
-      nodeMailer.mailOptions.html = data[0]
-      return nodeMailer.transporter.sendMail(nodeMailer.mailOptions)
-    }).spread(data => {
+      else return Promise.resolve();
+    }).then(() => {
       req.body.JWT = jwt.sign({
 				id: id,
         youthdraftKey: serverKeys.youthdraftKey,

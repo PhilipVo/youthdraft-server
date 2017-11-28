@@ -203,7 +203,7 @@ module.exports = {
         return connection.execute(query, [req.user.id]);
       })).spread(data => {
         data.password = password
-        return [nodeMailer.resetLeaguePassword(data), data]
+        return [nodeMailer.verifyLeague(data), data]
       }).spread((email, data) => {
         nodeMailer.mailOptions.to = data[0].email
         nodeMailer.mailOptions.subject = "Your account has been validated"
