@@ -95,14 +95,15 @@ module.exports = {
         const query = "SELECT * FROM coaches WHERE email = ? AND leagueId =  (SELECT id FROM leagues WHERE leagueName = ? " +
           "AND city = ? AND state = ? LIMIT 1) LIMIT 1";
         return connection.execute(query, [req.body.email, req.body.leagueName, req.body.city, req.body.state]);
-      }))
-      .spread(data => {
-        nodeMailer.mailOptions.to = req.body.email
-        nodeMailer.mailOptions.subject = "Your password has been reset"
-        nodeMailer.mailOptions.html = "<p>" + data[0].firstName + " " + data[0].lastName + " here is your new password: " + password + "</p>"
-        return nodeMailer.transporter.sendMail(nodeMailer.mailOptions)
-      })
-      .then(info => res.status(200).json())
+      })).spread(data => {
+        data[0].password = password;
+        return nodeMailer.resetCoachPassword(data[0]);
+      }).then(email => {
+        nodeMailer.mailOptions.to = req.body.email;
+        nodeMailer.mailOptions.subject = "Your password has been reset";
+        nodeMailer.mailOptions.html = email;
+        return nodeMailer.transporter.sendMail(nodeMailer.mailOptions);
+      }).then(info => res.status(200).json())
       .catch(error => {
         if (error.status)
           return res.status(error.status).json({ message: error.message });
@@ -233,12 +234,20 @@ module.exports = {
           req.user.id
         ];
         return connection.execute(query, data);
-      }))
-      .spread(data => {
+      })).spread(coachData => {
+        const query = "SELECT * FROM leagues WHERE id = UNHEX(?)"
+        return coachData, connection.execute(query, [req.user.id]);
+      }).spread(data => {
+        req.body.leagueFirstName = data[0].leagueFirstName;
+        req.body.leagueLastName = data[0].leagueLastName;
+        req.body.leagueName = data[0].leagueName;
+        req.body.leagueCity = data[0].city;
+        req.body.leagueState = data[0].state;
+        return nodeMailer.resetCoachPassword(req.body);
+      }).then(email => {
         nodeMailer.mailOptions.to = req.body.email;
-        nodeMailer.mailOptions.subject = "Your account has been validated";
-        nodeMailer.mailOptions.html = "<p>" + req.body.firstName + " " + req.body.lastName +
-          " here is your password: " + password + "</p>";
+        nodeMailer.mailOptions.subject = "Your coaching account at YouthDraft.com was created";
+        nodeMailer.mailOptions.html = email
         return nodeMailer.transporter.sendMail(nodeMailer.mailOptions)
       })
       .then(info => res.status(200).json())
@@ -435,6 +444,7 @@ module.exports = {
         data[0].password = password;
         return [nodeMailer.verifyCoachEmail(data[0]), data];
       }).spread((email, data) => {
+        console.log("works");
         nodeMailer.mailOptions.to = data[0].email
         nodeMailer.mailOptions.subject = "Your account has been validated"
         nodeMailer.mailOptions.html = email

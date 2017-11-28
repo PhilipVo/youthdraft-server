@@ -13,8 +13,7 @@ const nodeMailer = require('../config/nodemailer');
 
 module.exports = {
   tester: (req, res) => {
-
-    const divisionHash = {}, files = [req.files.players[0].path, req.files.coaches[0].path, req.files.teams[0].path];
+    const divisionHash = {}, passwordArray = [], files = [req.files.players[0].path, req.files.coaches[0].path, req.files.teams[0].path];
     let divisionString = "";
 
     // Expecting all form data.
@@ -195,6 +194,7 @@ module.exports = {
           throw { status: 400, message: "Coaches should either be a head coach or an assistant coach.  Please check cell L" + (i + 1)};
         }
 
+        passwordArray.push(generator.generate({ length: 10, strict: true, numbers: true  }));
         jsonArray[i].push("UNHEX(REPLACE(UUID(), '-', ''))");
         jsonArray[i].push(new Buffer(id, "hex"));
         jsonArray[i].push("NOW()");
@@ -206,12 +206,57 @@ module.exports = {
       req.body.numPlayers = req.body.teams.length - 1
       req.body.numTeams = req.body.players.length - 1
 
+
+			const data = [id, req.body.email, req.body.firstName, req.body.lastName, req.body.leagueName, req.body.phoneNumber, req.body.city, req.body.state];
+			const query = "INSERT INTO leagues SET id = UNHEX(?), email = ?, firstName = ?, lastName = ?, isLive = 0, " +
+				"leagueName = ?, phoneNumber = ?, city = ?, state = ?, createdAt = NOW(), updatedAt = NOW()";
+			return connection.execute(query, data);
+    }).spread(data => Promise.map(passwordArray, function(password) {
+      return bcrypt.hashAsync(password, 10)
+    })).spread(hashes => {
+      for (let i = 0; i < hashes.length; i++) {
+        req.body.coaches[i].push(hashes[i])
+      }
+      if (jsonArray.length > 0) {
+        const query = `INSERT INTO coaches (firstName, lastName, birthday, gender, email, phoneNumber, address, " +
+          "city, state, zip, division, coachType, id, leagueId, createdAt, updatedAt, password) VALUES ?";
+        return connection.query(query, [req.body.coaches]);
+      }
+      else return Promise.resolve();
+    }).spread(data => {
+      if (jsonArray.length > 0) {
+        const query = "INSERT INTO teams (firstName, lastName, division, email, phoneNumber, " +
+          "id, leagueId, createdAt, updatedAt) VALUES ?";
+        return connection.query(query, [req.body.teams]);
+      }
+      else return Promise.resolve();
+    }).spread(data => {
+      if (jsonArray.length > 0) {
+        const query = "INSERT INTO players (firstName, lastName, teamNumber, birthday, leagueAge, phoneNumber, " +
+          "email, pitcher, catcher, coachsKid, division, parentFirstName, parentLastName, id, teamId, leagueId, " +
+          "createdAt, updatedAt) VALUES ?";
+        return connection.query(query, [req.body.players]);
+      }
+      else return Promise.resolve();
+    }).spread(data => {
+      for (let i = 0; i < hashes.length; i++) {
+        req.body.coaches[i].push(passwordArray[i])
+      }
+      return Promise.map(req.body.coaches, function(coach) {
+        return [nodeMailer.leagueEmail(coach), coach.email]
+      })
+    }).map(data => {
+      nodeMailer.mailOptions.to = data[1];
+      nodeMailer.mailOptions.subject = "Your coaching account at YouthDraft.com was created";
+      nodeMailer.mailOptions.html = data[0]
+      return nodeMailer.transporter.sendMail(nodeMailer.mailOptions)
+    }).spread(data => {
       req.body.JWT = jwt.sign({
 				id: id,
         youthdraftKey: serverKeys.youthdraftKey,
 				iat: Math.floor(Date.now() / 1000) - 30
 			}, jwtKey);
-      return nodeMailer.verifyLeagueEmail(req.body)
+      return nodeMailer.leagueEmail(req.body)
     }).then(email => {
       nodeMailer.mailOptions.attachments = [{path: req.files.coaches[0].path}, {path: req.files.players[0].path}, {path: req.files.teams[0].path}]
       nodeMailer.mailOptions.to = serverKeys.youthdraftEmail
@@ -223,7 +268,9 @@ module.exports = {
       return res.status(200).json(req.body);
     }).catch(error => {
       files.forEach(filepath => {fs.unlink(filepath, err => {})});
-      return res.status(400).json({error: error});
+      if (error["code"] == "ER_DUP_ENTRY")
+				return res.status(400).json({ message: "Email already associated with this league." });
+      return res.status(400).json({message: "Please contact an admin.", error: error});
     });
   },
   register: (req, res) => {

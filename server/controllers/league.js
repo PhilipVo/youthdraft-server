@@ -131,11 +131,13 @@ module.exports = {
           return res.status(200).json()
         const query = "SELECT * FROM leagues WHERE email = ? AND leagueName = ? AND city = ? AND state = ? LIMIT 1";
         return connection.execute(query, [req.body.email, req.body.leagueName, req.body.city, req.body.state]);
-      }))
-      .spread(data => {
+      })).spread(data => {
+        data.password = password
+        return nodeMailer.resetLeaguePassword(data)
+      }).spread(email => {
         nodeMailer.mailOptions.to = req.body.email
         nodeMailer.mailOptions.subject = "Your password has been reset"
-        nodeMailer.mailOptions.html = "<p>" + data[0].leagueName + " here is your new password: " + password + "</p>"
+        nodeMailer.mailOptions.html = email
         return nodeMailer.transporter.sendMail(nodeMailer.mailOptions)
       })
       .then(info => res.status(200).json())
@@ -193,21 +195,21 @@ module.exports = {
         const query = "UPDATE leagues SET isLive = 1 , password = ?, updatedAt = NOW() WHERE id = UNHEX(?) " +
         "AND isLive != 1 LIMIT 1";
         return connection.execute(query, [hash, req.user.id]);
-      }))
-      .spread(data => Promise.using(getConnection(), connection => {
+      })).spread(data => Promise.using(getConnection(), connection => {
         if (data.affectedRows == 0)
           throw { status: 400, message: "This league has already been validated." };
 
         const query = "SELECT * FROM leagues WHERE id = UNHEX(?) LIMIT 1";
         return connection.execute(query, [req.user.id]);
-      }))
-      .spread(data => {
+      })).spread(data => {
+        data.password = password
+        return [nodeMailer.resetLeaguePassword(data), data]
+      }).spread((email, data) => {
         nodeMailer.mailOptions.to = data[0].email
         nodeMailer.mailOptions.subject = "Your account has been validated"
-        nodeMailer.mailOptions.html = "<p>" + data[0].firstName + " " + data[0].lastName + " here is your password: " + password + "</p>"
+        nodeMailer.mailOptions.html = email
         return nodeMailer.transporter.sendMail(nodeMailer.mailOptions)
-      })
-      .then(info => res.status(200).json())
+      }).then(info => res.status(200).json())
       .catch(error => {
         if (error.status)
           return res.status(error.status).json({ message: error.message });
@@ -227,10 +229,10 @@ module.exports = {
       const query = "DELETE FROM leagues WHERE id = UNHEX(?) LIMIT 1";
       return [connection.execute(query, [req.user.id]), data];
     })).spread((dataDel, data) => {
-      return [nodeMailer.verifyLeagueEmail(data), data]
+      return [nodeMailer.rejectLeague(data), data]
     }).spread((email, data) => {
       nodeMailer.mailOptions.to = data[0].email
-      nodeMailer.mailOptions.subject = "Your account has been rejected"
+      nodeMailer.mailOptions.subject = "Your account has been rejected/terminated"
       nodeMailer.mailOptions.html = email
       return nodeMailer.transporter.sendMail(nodeMailer.mailOptions)
     }).then(info => res.status(200).json())
