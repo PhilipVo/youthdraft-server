@@ -202,11 +202,11 @@ module.exports = {
         const query = "SELECT * FROM leagues WHERE id = UNHEX(?) LIMIT 1";
         return connection.execute(query, [req.user.id]);
       })).spread(data => {
-        data.password = password
-        return [nodeMailer.verifyLeague(data), data]
+        data[0].password = password
+        return [nodeMailer.verifyLeague(data[0]), data[0]]
       }).spread((email, data) => {
-        console.log(email, data);
-        nodeMailer.mailOptions.to = data[0].email
+        console.log(email, data.email);
+        nodeMailer.mailOptions.to = data.email
         nodeMailer.mailOptions.subject = "Your account has been validated"
         nodeMailer.mailOptions.html = email
         return nodeMailer.transporter.sendMail(nodeMailer.mailOptions)
