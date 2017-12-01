@@ -166,11 +166,6 @@ app.post('/api/tryouts', tryouts.modify);
 //                       Team routes                      //
 ////////////////////////////////////////////////////////////
 
-// For bulk
-app.post('/api/teams/upload', teams.upload);
-	// still working on whether or not do this front end...
-
-// For single
 app.post('/api/teams', teams.teams);
 	// create a new team for a leagueId
 	expects: JWT of league admin
@@ -223,11 +218,6 @@ app.delete('/api/teams/:id', teams.delete);
 //                     Coaches routes                     //
 ////////////////////////////////////////////////////////////
 
-// For bulk
-app.post('/api/coaches/upload', coaches.upload);
-	// still working on whether or not do this front end...
-
-// For single
 app.post('/coaches/register', coaches.register);
 	// Passwords are emailed upon league validation
 	expects:
@@ -429,11 +419,6 @@ app.delete('/api/coaches/:id', coaches.delete);
 //                     Players routes                     //
 ////////////////////////////////////////////////////////////
 
-// For bulk
-app.post('/api/players/upload', players.upload);
-	// still working on whether or not do this front end...
-
-// For single
 app.post('/api/players', players.players);
 	// For the league admin to create a player also socket.emits
 	expects: JWT of a league admin
