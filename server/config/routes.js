@@ -16,7 +16,7 @@ module.exports = function (app) {
 	//                  League Admin routes                   //
 	////////////////////////////////////////////////////////////
 
-	app.post('/league/register', leagueRegister.register);
+	app.post('/league/register', upload.fields(uploadFields), leagueRegister.register);
 	app.get('/leagues', league.getAll); // to get all the leagues for selecting from the drop down, contains, league name, city, state, and league id
 	app.post('/api/league/validate', league.validate); // for youthdraft to verify a league
 	app.post('/api/league/reject', league.reject); // for youthdraft to unverify and delete a league
@@ -37,7 +37,6 @@ module.exports = function (app) {
 	//                       Team routes                      //
 	////////////////////////////////////////////////////////////
 
-	// For single
 	app.post('/api/teams/:id', teams.teams);
 	app.post('/api/teams', teams.teams);
 	app.get('/api/teams', teams.getAll);
@@ -47,7 +46,6 @@ module.exports = function (app) {
 	//                     Coaches routes                     //
 	////////////////////////////////////////////////////////////
 
-	// For single
 	app.post('/coaches/register', coaches.register);
 	app.get('/api/coaches/all', coaches.getAll);
 	app.post('/api/coaches/validate/:id', coaches.validate);
@@ -63,7 +61,6 @@ module.exports = function (app) {
 	//                     Players routes                     //
 	////////////////////////////////////////////////////////////
 
-	// For single
 	app.put('/api/players/:id', players.players);
 	app.post('/api/players', players.players);
 	app.get('/api/players', players.getAll);

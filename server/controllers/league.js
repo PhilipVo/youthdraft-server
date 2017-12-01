@@ -132,7 +132,7 @@ module.exports = {
         return connection.execute(query, [req.body.email, req.body.leagueName, req.body.city, req.body.state]);
       })).spread(data => {
         data.password = password
-        return nodeMailer.resetLeaguePassword(data)
+        return nodeMailer.resetLeaguePassword(data[0])
       }).spread(email => {
         nodeMailer.mailOptions.to = req.body.email
         nodeMailer.mailOptions.subject = "Your password has been reset"
@@ -228,7 +228,7 @@ module.exports = {
       const query = "DELETE FROM leagues WHERE id = UNHEX(?) LIMIT 1";
       return [connection.execute(query, [req.user.id]), data];
     })).spread((dataDel, data) => {
-      return [nodeMailer.rejectLeague(data), data]
+      return [nodeMailer.rejectLeague(data[0]), data]
     }).spread((email, data) => {
       nodeMailer.mailOptions.to = data[0].email
       nodeMailer.mailOptions.subject = "Your account has been rejected/terminated"
