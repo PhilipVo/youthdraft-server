@@ -17,7 +17,7 @@ module.exports = {
       if (!req.body.tryouts[i].date || !req.body.tryouts[i].address) {
         return res.status(400).json({ message: "Tryouts need both a date and an address." });
       }
-      if (!/^\(?([0-9]{4})\)?[- ]?(0?[1-9]|1[0-2])[- ]?(0?[1-9]|[12]\d|30|31)[ T](0?[1-9]|1[0-9]|2[0-4]):(0?[1-9]|[1-6]\d)?Z?$/.test(req.body.tryouts[i].date)) {
+      if (!/^\(?([0-9]{4})\)?[- ]?(0?[1-9]|1[0-2])[- ]?(0?[1-9]|[12]\d|30|31)[ T](0?[0-9]|1[0-9]|2[0-3]):(0?[0-9]|[0-6]\d)?Z?$/.test(req.body.tryouts[i].date)) {
         return res.status(400).json({ message: "Tryout times should be in the format of YYYY-MM-DD HH:MM."});
       }
       tempTryouts[i] = [req.body.tryouts[i].date, req.body.tryouts[i].address];
