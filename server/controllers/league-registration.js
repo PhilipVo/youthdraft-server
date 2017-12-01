@@ -61,7 +61,7 @@ module.exports = {
           files.forEach(filepath => {fs.unlink(filepath, err => {})});
           return res.status(400).json({ message: "Tryout times should be in the format of YYYY-MM-DD HH:MM."});
         }
-        tempTryouts[i] = [req.body.tryouts[i].date.substring(4,6), req.body.tryouts[i].address];
+        tempTryouts[i] = [req.body.tryouts[i].date, req.body.tryouts[i].address];
         tempTryouts[i].push("UNHEX(REPLACE(UUID(), '-', ''))");
         tempTryouts[i].push(new Buffer(id, "hex"));
         tempTryouts[i].push("NOW()");
