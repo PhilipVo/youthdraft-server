@@ -204,6 +204,7 @@ module.exports = {
         data[0].password = password
         return [nodeMailer.verifyLeague(data[0]), data]
       }).spread((email, data) => {
+        console.log(email, data[0]);
         nodeMailer.mailOptions.to = data[0].email
         nodeMailer.mailOptions.subject = "Your account has been validated"
         nodeMailer.mailOptions.html = email
