@@ -67,8 +67,8 @@ module.exports = {
         tempTryouts[i].push("NOW()");
         tempTryouts[i].push("NOW()");
       }
-      req.body.tryouts = tempTryouts;
     }
+    req.body.tryouts = tempTryouts;
 
     if (!req.files.players || !req.files.coaches || !req.files.teams) {
       files.forEach(filepath => {fs.unlink(filepath, err => {})});
@@ -240,6 +240,15 @@ module.exports = {
         return Promise.using(getConnection(), connection => connection.query(query, [req.body.players]));
       }
       else return Promise.resolve();
+    }).spread(data => {
+      if (tempTryouts.length > 0) {
+        console.log(tempTryouts);
+        const query = "INSERT INTO tryouts (date, address, id, leagueId, createdAt, updatedAt) VALUES ?"
+        console.log(query);
+        console.log(tempTryouts);
+        return Promise.using(getConnection(), connection => connection.query(query, [tempTryouts]));
+      }
+      return Promise.resolve();
     }).then(() => {
       if (passwordArray.length > 0) {
         const coachArray = []
