@@ -5,40 +5,6 @@ const xlsxConverter = require('../services/xlsx-converter');
 const getConnection = require("../config/mysql");
 
 module.exports = {
-  upload: (req, res) => {
-    xlsxConverter("./" + req.file.path).then(jsonArray => {
-      const tempLength = jsonArray.length;
-      for (var i = 0; i < tempLength; i++) {
-        if (jsonArray[i].length < 13) {
-          return res.status(400).json({message: "Please check your spreadsheet, you are missing a column."});
-        }
-        if (jsonArray[i].length > 13) {
-          jsonArray[i].splice(13)
-        }
-        jsonArray[i].push("UNHEX(REPLACE(UUID(), '-', ''))");
-        // jsonArray[i].push("UNHEX(" + req.user.id + ")");
-        jsonArray[i].push(new Buffer(req.user.id, "hex"));
-        jsonArray[i].push("NOW()");
-        jsonArray[i].push("NOW()");
-      }
-      console.log(jsonArray);
-      Promise.using(getConnection(), connection => {
-        if (jsonArray.length > 0) {
-          const query = "INSERT INTO players (firstName, lastName, teamNumber, birthday, leagueAge, phoneNumber, " +
-            "email, pitcher, catcher, coachsKid, division, parentFirstName, parentLastName, id, teamId, leagueId, " +
-            "createdAt, updatedAt) VALUES ?";
-          return connection.query(query, [jsonArray]);
-        }
-        else return Promise.resolve();
-      }).then(() => {
-        return res.status(200).json({message: "works"})
-			}).catch(error => {
-        return res.status(400).json(error);
-      });
-    }).catch(error => {
-      return res.status(400).json(error);
-    });
-	},
   getDivision: (req, res) => {
     req.params.division = req.params.division.toLowerCase();
     Promise.using(getConnection(), connection => {

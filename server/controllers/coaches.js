@@ -11,43 +11,6 @@ const nodeMailer = require('../config/nodemailer');
 
 
 module.exports = {
-  upload: (req, res) => {
-    xlsxConverter("./" + req.file.path).then(jsonArray => {
-      const tempLength = jsonArray.length;
-      for (var i = 0; i < tempLength; i++) {
-        if (jsonArray[i].length < 5) {
-          return res.status(400).json({message: "Please check your spreadsheet, you are missing a column."});
-        }
-        if (jsonArray[i].length > 12) {
-          jsonArray[i].splice(12)
-        }
-        jsonArray[i].push("UNHEX(REPLACE(UUID(), '-', ''))");
-        // jsonArray[i].push("UNHEX(" + req.user.id + ")");
-        jsonArray[i].push(new Buffer(req.user.id, "hex"));
-        jsonArray[i].push("NOW()");
-        jsonArray[i].push("NOW()");
-        jsonArray[i].push(1);
-        jsonArray[i].push(generator.generate({ length: 10, strict: true, numbers: true  }))
-      }
-      Promise.using(getConnection(), connection => {
-        if (jsonArray.length > 0) {
-          const query = "INSERT INTO coaches (firstName, lastName, birthday, gender, email, phoneNumber, address, " +
-            "city, state, zip, division, coachType, id, leagueId, createdAt, updatedAt, validated, password) VALUES ?"
-          console.log([jsonArray.slice(1)]);
-          return connection.query(query, [jsonArray.slice(1)]);
-        }
-        else return Promise.resolve();
-      }).then(() => {
-        return res.status(200).json({message: "works"})
-			}).catch(error => {
-        if (error.code == "ER_DUP_ENTRY")
-          return res.status(400).json({message: "Error: One of the emails were duplicated"});
-        return res.status(400).json(error);
-      });
-    }).catch(error => {
-      return res.status(400).json(error);
-    });
-	},
   getAll: (req, res) => {
     if (req.user.leagueId) {
       return res.status(400).json({ message: "You must be a league admin to use this route." })

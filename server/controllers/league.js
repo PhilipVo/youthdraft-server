@@ -25,7 +25,6 @@ module.exports = {
       return connection.execute(query);
     }).spread(data => res.status(200).json(data))
       .catch(error => {
-        console.log(error)
         return res.status(400).json({ message: "Please contact an admin." })
       });
   },
@@ -205,7 +204,6 @@ module.exports = {
         data[0].password = password
         return [nodeMailer.verifyLeague(data[0]), data[0]]
       }).spread((email, data) => {
-        console.log(email, data.email);
         nodeMailer.mailOptions.to = data.email
         nodeMailer.mailOptions.subject = "Your account has been validated"
         nodeMailer.mailOptions.html = email

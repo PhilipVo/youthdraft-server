@@ -17,7 +17,6 @@ module.exports = function (app) {
 	////////////////////////////////////////////////////////////
 
 	app.post('/league/register', leagueRegister.register);
-	app.post('/test', upload.fields(uploadFields), leagueRegister.tester)
 	app.get('/leagues', league.getAll); // to get all the leagues for selecting from the drop down, contains, league name, city, state, and league id
 	app.post('/api/league/validate', league.validate); // for youthdraft to verify a league
 	app.post('/api/league/reject', league.reject); // for youthdraft to unverify and delete a league
