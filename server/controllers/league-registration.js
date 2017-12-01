@@ -57,10 +57,10 @@ module.exports = {
           files.forEach(filepath => {fs.unlink(filepath, err => {})});
           return res.status(400).json({ message: "Tryouts need both a date and an address.", tryouts: req.body.tryouts });
         }
-        // if (!/^\(?([0-9]{4})\)?[-]?(0?[1-9]|1[0-2])[-]?(0?[1-9]|[12]\d|30|31)$/.test(req.body.tryouts[i].date)) {
-        //   files.forEach(filepath => {fs.unlink(filepath, err => {})});
-        //   return res.status(400).json({ message: "Dates should be in the format of YYYY-MM-DD.", tryouts: req.body.tryouts });
-        // }
+        if (!/^\(?([0-9]{4})\)?[- ]?(0?[1-9]|1[0-2])[- ]?(0?[1-9]|[12]\d|30|31)[ T](0?[1-9]|1[0-9]|2[0-4]):(0?[1-9]|[1-6]\d)?Z?$/.test(req.body.tryouts[i].date)) {
+          files.forEach(filepath => {fs.unlink(filepath, err => {})});
+          return res.status(400).json({ message: "Tryout times should be in the format of YYYY-MM-DD HH:MM."});
+        }
         tempTryouts[i] = [req.body.tryouts[i].date.substring(4,6), req.body.tryouts[i].address];
         tempTryouts[i].push("UNHEX(REPLACE(UUID(), '-', ''))");
         tempTryouts[i].push(new Buffer(id, "hex"));
@@ -205,6 +205,7 @@ module.exports = {
       req.body.numCoaches = req.body.coaches.length - 1
       req.body.numPlayers = req.body.teams.length - 1
       req.body.numTeams = req.body.players.length - 1
+      console.log("works1");
 
 
 			const data2 = [id, req.body.email, req.body.firstName, req.body.lastName, req.body.leagueName, req.body.phoneNumber, req.body.city, req.body.state];
@@ -279,6 +280,8 @@ module.exports = {
       return res.status(200).json(req.body);
     }).catch(error => {
       files.forEach(filepath => {fs.unlink(filepath, err => {})});
+      if (error.status)
+        return res.status(error.status).json({ message: error.message });
       if (error["code"] == "ER_DUP_ENTRY")
 				return res.status(400).json({ message: "Email already associated with this league." });
       return res.status(400).json({message: "Please contact an admin.", error: error});

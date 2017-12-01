@@ -6,6 +6,9 @@ const getConnection = require("../config/mysql");
 
 module.exports = {
   modify: (req, res) => {
+    if (req.user.leagueId) {
+      return res.status(400).json({ message: "Only a league admin can add, remove, or modify a tryout date."});
+    }
     let tempTryouts = []
     if (req.body.tryouts.length > 5)
       return res.status(400).json({ message: "Only up to 5 tryout dates are allowed." });
@@ -13,6 +16,9 @@ module.exports = {
     for (var i = 0; i < req.body.tryouts.length; i++) {
       if (!req.body.tryouts[i].date || !req.body.tryouts[i].address) {
         return res.status(400).json({ message: "Tryouts need both a date and an address." });
+      }
+      if (!/^\(?([0-9]{4})\)?[- ]?(0?[1-9]|1[0-2])[- ]?(0?[1-9]|[12]\d|30|31)[ T](0?[1-9]|1[0-9]|2[0-4]):(0?[1-9]|[1-6]\d)?Z?$/.test(req.body.tryouts[i].date)) {
+        return res.status(400).json({ message: "Tryout times should be in the format of YYYY-MM-DD HH:MM."});
       }
       tempTryouts[i] = [req.body.tryouts[i].date, req.body.tryouts[i].address];
       tempTryouts[i].push("UNHEX(REPLACE(UUID(), '-', ''))");
@@ -23,10 +29,16 @@ module.exports = {
 
     Promise.using(getConnection(), connection => {
       const query = "DELETE FROM tryouts WHERE leagueId = UNHEX(?)";
+      console.log(query);
       return connection.execute(query, [req.user.id]);
     }).spread(data => {
-      const query = "INSERT INTO tryouts (date, address, id, leagueId, createdAt, updatedAt) VALUES ?"
-      return Promise.using(getConnection(), connection => connection.query(query, [tempTryouts]));
+      if (tempTryouts.length > 0) {
+        const query = "INSERT INTO tryouts (date, address, id, leagueId, createdAt, updatedAt) VALUES ?"
+        console.log(query);
+        console.log(tempTryouts);
+        return Promise.using(getConnection(), connection => connection.query(query, [tempTryouts]));
+      }
+      return Promise.resolve();
     }).then(() => res.end())
       .catch(error => {
         if (error.status)
