@@ -202,9 +202,9 @@ module.exports = {
       }
       req.body.coaches = jsonArray.slice(1)
 
-      req.body.numCoaches = req.body.coaches.length - 1
-      req.body.numPlayers = req.body.teams.length - 1
-      req.body.numTeams = req.body.players.length - 1
+      req.body.numCoaches = req.body.coaches.length;
+      req.body.numPlayers = req.body.teams.length;
+      req.body.numTeams = req.body.players.length;
 
 			const data2 = [id, req.body.email, req.body.firstName, req.body.lastName, req.body.leagueName, req.body.phoneNumber, req.body.city, req.body.state];
 			const query2 = "INSERT INTO leagues SET id = UNHEX(?), email = ?, firstName = ?, lastName = ?, isLive = 0, " +
@@ -284,7 +284,7 @@ module.exports = {
       if (error.status)
         return res.status(error.status).json({ message: error.message });
       if (error["code"] == "ER_DUP_ENTRY")
-				return res.status(400).json({ message: "Email already associated with this league." });
+				return res.status(400).json({ message: "This league already exists." });
       return res.status(400).json({message: "Please contact an admin.", error: error});
     });
 	}
