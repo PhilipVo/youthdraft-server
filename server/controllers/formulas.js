@@ -135,7 +135,7 @@ module.exports = {
       const query2 = "SELECT * FROM formulas WHERE coachId = UNHEX(?) AND leagueId = UNHEX(?)";
       return connection.execute(query2, [req.user.id, req.user.leagueId]);
     }).spread(data => {
-      if (data.length > 4) {
+      if (data.length > 4 && !req.params.id) {
         throw { status: 400, message: 'You already have five formulas.  Please delete one before adding more'}
       }
       console.log(query2);

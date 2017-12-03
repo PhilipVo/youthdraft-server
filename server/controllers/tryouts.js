@@ -3,6 +3,8 @@ const uuid = require('uuid/v1');
 
 const getConnection = require("../config/mysql");
 
+const maxTryouts = 8
+
 
 module.exports = {
   modify: (req, res) => {
@@ -10,8 +12,8 @@ module.exports = {
       return res.status(400).json({ message: "Only a league admin can add, remove, or modify a tryout date."});
     }
     let tempTryouts = []
-    if (req.body.tryouts.length > 5)
-      return res.status(400).json({ message: "Only up to 5 tryout dates are allowed." });
+    if (req.body.tryouts.length > maxTryouts)
+      return res.status(400).json({ message: "Only up to" + maxTryouts + "tryout dates are allowed." });
 
     for (var i = 0; i < req.body.tryouts.length; i++) {
       if (!req.body.tryouts[i].date || !req.body.tryouts[i].address) {
