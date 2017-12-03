@@ -42,7 +42,7 @@ const rejectLeague = data => {
     let replaced = ""
     const html = `<p><span style="padding-bottom:2em;display:block">Hello %%firstName%% %%lastName%%,</span>
     <span style="padding-bottom:2em;display:block">We are sorry to inform you that your league account for %%leagueName%%
-      at %%leagueCity%%, %%leagueState%% at Youthdraft.com has been rejected/terminated.  You can contact the Youthdraft
+      at %%city%%, %%state%% at Youthdraft.com has been rejected/terminated.  You can contact the Youthdraft
       Team at <a href='mailto:` + key.youthdraftEmail + `'>` + key.youthdraftEmail + `</a> if you have any concerns.</span>
     <span style="display:block">Sincerely,</span>
     <span style="display:block">The Youthdraft Team</span>`;
@@ -58,8 +58,8 @@ const verifyLeague = data => {
   return new Promise((resolve, reject) => {
     let replaced = ""
     const html = `<p><span style="padding-bottom:2em;display:block">Hello %%firstName%% %%lastName%%,</span>
-    <span style="padding-bottom:0.5em;display:block">Congratulations! Your league, %%leagueName%% at %%leagueCity%%,
-      %%leagueState%%, has been validated. You can now sign into either your Youthdraft mobile app or at <a href='http://Youthdraft.com'>
+    <span style="padding-bottom:0.5em;display:block">Congratulations! Your league, %%leagueName%% at %%city%%,
+      %%state%%, has been validated. You can now sign into either your Youthdraft mobile app or at <a href='http://Youthdraft.com'>
       Youthdraft.com</a> using your email and the following password:</span>
     <span style="padding-bottom:0.5em;display:block">%%password%%</span>
     <span style="padding-bottom:2em;display:block">Once inside your account, please remember to change your password to
