@@ -185,7 +185,15 @@ module.exports = {
 		});
 	},
   validate: (req, res) => {
-    if (!req.user.youthdraftKey || req.user.youthdraftKey != serverKeys.youthdraftKey)
+    if (!req.body.JWT)
+      return res.status(400).json({ message: "This link is not valid." });
+    let decoded = {};
+    try {
+      decoded = jwt.verify(req.body.JWT, jwtKey)
+    } catch (error) {
+      return res.status(400).json({ message: "This link is not valid." });
+    }
+    if (!decoded.youthdraftKey || decoded.youthdraftKey != serverKeys.youthdraftKey)
       return res.status(400).json({ message: "This link is not valid." });
     const password = generator.generate({ length: 10, strict: true, numbers: true  });
     bcrypt.genSaltAsync(10)
@@ -193,13 +201,13 @@ module.exports = {
 			.then(hash => Promise.using(getConnection(), connection => {
         const query = "UPDATE leagues SET isLive = 1 , password = ?, updatedAt = NOW() WHERE id = UNHEX(?) " +
         "AND isLive != 1 LIMIT 1";
-        return connection.execute(query, [hash, req.user.id]);
+        return connection.execute(query, [hash, decoded.id]);
       })).spread(data => Promise.using(getConnection(), connection => {
         if (data.affectedRows == 0)
           throw { status: 400, message: "This league has already been validated." };
 
         const query = "SELECT * FROM leagues WHERE id = UNHEX(?) LIMIT 1";
-        return connection.execute(query, [req.user.id]);
+        return connection.execute(query, [decoded.id]);
       })).spread(data => {
         data[0].password = password
         return [nodeMailer.verifyLeague(data[0]), data]
@@ -216,17 +224,25 @@ module.exports = {
       });
   },
   reject: (req, res) => {
-    if (!req.user.youthdraftKey || req.user.youthdraftKey != serverKeys.youthdraftKey)
+    if (!req.body.JWT)
+      return res.status(400).json({ message: "This link is not valid." });
+    let decoded = {};
+    try {
+      decoded = jwt.verify(req.body.JWT, jwtKey)
+    } catch (error) {
+      return res.status(400).json({ message: "This link is not valid." });
+    }
+    if (!decoded.youthdraftKey || decoded.youthdraftKey != serverKeys.youthdraftKey)
       return res.status(400).json({ message: "This link is not valid." });
     Promise.using(getConnection(), connection => {
       const query = "SELECT * FROM leagues WHERE id = UNHEX(?) LIMIT 1";
-      return connection.execute(query, [req.user.id]);
+      return connection.execute(query, [decoded.id]);
     })
     .spread(data => Promise.using(getConnection(), connection => {
       if (data.length == 0)
         throw { status: 400, message: "This league does not exist." };
       const query = "DELETE FROM leagues WHERE id = UNHEX(?) LIMIT 1";
-      return [connection.execute(query, [req.user.id]), data];
+      return [connection.execute(query, [decoded.id]), data];
     })).spread((dataDel, data) => {
       return [nodeMailer.rejectLeague(data[0]), data]
     }).spread((email, data) => {

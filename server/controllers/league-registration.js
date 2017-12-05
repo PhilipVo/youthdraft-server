@@ -57,7 +57,7 @@ module.exports = {
           files.forEach(filepath => {fs.unlink(filepath, err => {})});
           return res.status(400).json({ message: "Tryouts need both a date and an address.", tryouts: req.body.tryouts });
         }
-        if (!/^\(?([0-9]{4})\)?[- ]?(0?[1-9]|1[0-2])[- ]?(0?[1-9]|[12]\d|30|31)[ T](0?[0-9]|1[0-9]|2[0-3]):(0?[0-9]|[0-6]\d)?Z?$/.test(req.body.tryouts[i].date)) {
+        if (!/^\(?([0-9]{4})\)?[- ]?(0?[1-9]|1[0-2])[- ]?(0?[1-9]|[12]\d|30|31)[ T](0?[0-9]|1[0-9]|2[0-3]):(0?[0-9]|[0-6]\d)$/.test(req.body.tryouts[i].date)) {
           files.forEach(filepath => {fs.unlink(filepath, err => {})});
           return res.status(400).json({ message: "Tryout times should be in the format of YYYY-MM-DD HH:MM."});
         }

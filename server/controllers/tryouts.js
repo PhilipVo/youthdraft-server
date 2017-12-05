@@ -12,6 +12,7 @@ module.exports = {
       return res.status(400).json({ message: "Only a league admin can add, remove, or modify a tryout date."});
     }
     let tempTryouts = []
+    let tempIds = []
     if (req.body.tryouts.length > maxTryouts)
       return res.status(400).json({ message: "Only up to" + maxTryouts + "tryout dates are allowed." });
 
@@ -19,23 +20,37 @@ module.exports = {
       if (!req.body.tryouts[i].date || !req.body.tryouts[i].address) {
         return res.status(400).json({ message: "Tryouts need both a date and an address." });
       }
-      if (!/^\(?([0-9]{4})\)?[- ]?(0?[1-9]|1[0-2])[- ]?(0?[1-9]|[12]\d|30|31)[ T](0?[0-9]|1[0-9]|2[0-3]):(0?[0-9]|[0-6]\d)?Z?$/.test(req.body.tryouts[i].date)) {
+      if (!/^\(?([0-9]{4})\)?[- ]?(0?[1-9]|1[0-2])[- ]?(0?[1-9]|[12]\d|30|31)[ T](0?[0-9]|1[0-9]|2[0-3]):(0?[0-9]|[0-6]\d)$/.test(req.body.tryouts[i].date)) {
         return res.status(400).json({ message: "Tryout times should be in the format of YYYY-MM-DD HH:MM."});
       }
       tempTryouts[i] = [req.body.tryouts[i].date, req.body.tryouts[i].address];
-      tempTryouts[i].push("UNHEX(REPLACE(UUID(), '-', ''))");
+      if (req.body.tryouts[i].id) {
+        tempIds.push(new Buffer(req.body.tryouts[i].id, "hex"))
+        tempTryouts[i].push(new Buffer(req.body.tryouts[i].id, "hex"))
+      } else {
+        tempTryouts[i].push("UNHEX(REPLACE(UUID(), '-', ''))");
+      }
       tempTryouts[i].push(new Buffer(req.user.id, "hex"));
       tempTryouts[i].push("NOW()");
       tempTryouts[i].push("NOW()");
     }
 
     Promise.using(getConnection(), connection => {
-      const query = "DELETE FROM tryouts WHERE leagueId = UNHEX(?)";
+      let query = ""
+      const data = [req.user.id]
+      if (tempIds.length == 0) {
+        query = "DELETE FROM tryouts WHERE leagueId = UNHEX(?)";
+      } else {
+        query = "DELETE FROM tryouts WHERE leagueId = UNHEX(?) && id NOT IN ?";
+        data.push([tempIds])
+      }
+      console.log(tempIds);
       console.log(query);
-      return connection.execute(query, [req.user.id]);
+      return connection.query(query, data);
     }).spread(data => {
       if (tempTryouts.length > 0) {
-        const query = "INSERT INTO tryouts (date, address, id, leagueId, createdAt, updatedAt) VALUES ?"
+        const query = "INSERT INTO tryouts (date, address, id, leagueId, createdAt, updatedAt) VALUES ? " +
+          "ON DUPLICATE KEY UPDATE date = VALUES(date), address = VALUES(address), updatedAt = NOW();"
         console.log(query);
         console.log(tempTryouts);
         return Promise.using(getConnection(), connection => connection.query(query, [tempTryouts]));
