@@ -131,12 +131,14 @@ app.get('/api/tryouts', tryouts.getAll);
 	returns:
 		[
 			{
+					"id": "dsafdsfdsafdsafdsafs",
 					"date": "2017-12-05T08:00:00.000Z", //UTC time need to convert it to local time
 					"address": "2215 Mine Street, Mine CA 95835",
 					"createdAt": "2017-11-04T07:37:25.000Z",
 					"updatedAt": "2017-11-04T07:37:25.000Z"
 			},
 			{
+					"id": "dfdsafdsafdsafasdf",
 					"date": "2017-12-08T08:00:00.000Z",
 					"address": "2215 Mine Street, Mine CA 95835",
 					"createdAt": "2017-11-04T07:37:25.000Z",
@@ -148,8 +150,9 @@ app.post('/api/tryouts', tryouts.modify);
 	//Modify all the try outs for the league
 	expects: JWT of league admin
 		{
-			"tryouts": [ // up to five
+			"tryouts": [ // up to eight routes
 				{
+					"id": "dfdsafdsafdsafasdf",  // expects id if you are modifying an existing tryout date.
 					"date": "2017-12-5", // YYYY-MM-DD
 					"address": "2215 Mine Street, Mine CA 95835" // String
 				},
