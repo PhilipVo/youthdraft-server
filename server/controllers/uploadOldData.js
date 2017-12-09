@@ -46,7 +46,7 @@ module.exports = {
         const tempPlayer = [];
         const tempId = uuid().replace(/\-/g, "");
         const tempSplice = players[key].birthday.split("/")
-        players[key].birthday = "20" + tempSplice[2] + "-" + tempSplice[1] + "-" + tempSplice[0]
+        players[key].birthday = "20" + tempSplice[2] + "-" + tempSplice[0] + "-" + tempSplice[1]
         tempPlayer.push(players[key].firstname);
         tempPlayer.push(players[key].lastname);
         tempPlayer.push(players[key].leagueage);
