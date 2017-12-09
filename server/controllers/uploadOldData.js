@@ -52,7 +52,7 @@ module.exports = {
         tempPlayer.push(players[key].leagueage);
         tempPlayer.push(players[key].birthday);
         tempPlayer.push(players[key].jersey);
-        tempPlayer.push("");
+        tempPlayer.push(0);
         tempPlayer.push(new Buffer(tempId, "hex"));
         tempPlayer.push(new Buffer(leagueId, "hex"));
         tempPlayer.push("NOW()");
