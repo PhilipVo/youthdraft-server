@@ -56,12 +56,17 @@ module.exports = {
         return connection.execute(query, [hash, req.body.email, req.body.leagueName, req.body.city, req.body.state]);
       }))
       .spread(data => Promise.using(getConnection(), connection => {
-        if (data.length == 0)
-          throw { status: 400, message: "Please wait for your account to be validated before trying to reset your password." };
+        let error = false;
+        if (data.affectedRows == 0)
+          error = true;
         const query = "SELECT * FROM coaches WHERE email = ? AND leagueId =  (SELECT id FROM leagues WHERE leagueName = ? " +
           "AND city = ? AND state = ? LIMIT 1) LIMIT 1";
-        return connection.execute(query, [req.body.email, req.body.leagueName, req.body.city, req.body.state]);
-      })).spread(data => {
+        return [connection.execute(query, [req.body.email, req.body.leagueName, req.body.city, req.body.state]), error];
+      })).spread((data, error) => {
+        if (data[0].length != 0 && error)
+          throw { status: 400, message: "Please wait for your account to be validated before trying to reset your password." };
+        else if (error)
+          throw { status: 400, message: "There is no such email associated with this league." };
         data[0].password = password;
         return nodeMailer.resetCoachPassword(data[0]);
       }).then(email => {
@@ -73,7 +78,7 @@ module.exports = {
       .catch(error => {
         if (error.status)
           return res.status(error.status).json({ message: error.message });
-        return res.status(400).json({ message: "Please contact an admin."});
+        return res.status(400).json({ message: "Please contact an admin.", error: error});
       });
   },
   coaches: (req, res) => {

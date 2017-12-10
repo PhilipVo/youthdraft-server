@@ -27,7 +27,7 @@ module.exports = function (app) {
 	app.put('/api/league', league.update); // update the league admin profile
 	app.put('/api/league/password', league.password); // update the league admin password
 
-	app.post('/api/uploadOld', uploadOld.createTest);
+	// app.post('/api/uploadOld', uploadOld.createTest);
 
 	////////////////////////////////////////////////////////////
 	//                     Tryout routes                      //

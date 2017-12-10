@@ -126,11 +126,16 @@ module.exports = {
         return connection.execute(query, [hash, req.body.email, req.body.leagueName, req.body.city, req.body.state]);
       }))
       .spread(data => Promise.using(getConnection(), connection => {
-        if (data.length == 0)
-          return res.status(200).json()
+        let error = false;
+        if (data.affectedRows == 0)
+          error = true;
         const query = "SELECT * FROM leagues WHERE email = ? AND leagueName = ? AND city = ? AND state = ? LIMIT 1";
-        return connection.execute(query, [req.body.email, req.body.leagueName, req.body.city, req.body.state]);
-      })).spread(data => {
+        return [connection.execute(query, [req.body.email, req.body.leagueName, req.body.city, req.body.state]), error];
+      })).spread((data, error) => {
+        if (data[0].length != 0 && error)
+          throw { status: 400, message: "Please wait for your account to be validated before trying to reset your password." };
+        else if (error)
+          throw { status: 400, message: "There is no such email associated with this league." };
         data.password = password
         return nodeMailer.resetLeaguePassword(data[0])
       }).spread(email => {
