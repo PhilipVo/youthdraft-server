@@ -229,7 +229,7 @@ module.exports = {
       data.push(req.body.division);
     }
     if (!addedQuery) {
-      return res.status(400).json({ message: "Please fillout your formula before submitting" });
+      return res.status(400).json({ message: "Nothing was submitted. Please fillout a player stats field before submitting." });
     }
     if (req.params.id) {
       query += ", updatedAt = NOW() WHERE id = UNHEX(?) AND coachId = UNHEX(?) LIMIT 1";
