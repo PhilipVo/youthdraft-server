@@ -8,6 +8,7 @@ const 	league 					= require('../controllers/league.js'),
 				stats					 	= require('../controllers/stats.js'),
 				divisions				= require('../controllers/divisions.js'),
 				upload					= require('./multer.js'),
+				uploadOld				= require('../controllers/uploadOldData.js'),
 				uploadFields		= [{ name: 'teams', maxCount: 1 }, { name: 'coaches', maxCount: 1 }, { name: 'players', maxCount: 1 }];
 
 module.exports = function (app) {
@@ -25,6 +26,8 @@ module.exports = function (app) {
 	app.get('/api/league', league.get); // to get all the info connected to the league account
 	app.put('/api/league', league.update); // update the league admin profile
 	app.put('/api/league/password', league.password); // update the league admin password
+
+	app.post('/api/uploadOld', uploadOld.createTest);
 
 	////////////////////////////////////////////////////////////
 	//                     Tryout routes                      //
