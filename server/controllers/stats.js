@@ -13,8 +13,8 @@ module.exports = {
       const query = "SELECT HEX(id) as id, hittingMechanics, hittingMechanicsNotes, batSpeed, batSpeedNotes, batContact, " +
         "batContactNotes, throwingMechanics, throwingMechanicsNotes, armStrength, armStrengthNotes, armAccuracy, " +
         "armAccuracyNotes, inField, inFieldNotes, outField, outFieldNotes, baserunMechanics, baserunMechanicsNotes, " +
-        "baserunSpeed, baserunSpeedNotes, division, createdAt as createdAt, updatedAt FROM stats WHERE playerId = UNHEX(?) " +
-        "AND coachId = UNHEX(?) ORDER BY createdAt DESC"
+        "baserunSpeed, baserunSpeedNotes, division, finished, createdAt as createdAt, updatedAt FROM stats " +
+        "WHERE playerId = UNHEX(?) AND coachId = UNHEX(?) ORDER BY createdAt DESC"
       return connection.execute(query, [req.params.playerId, req.user.id]);
     }).spread(data => res.status(200).json(data))
       .catch(error => res.status(400).json({ message: "Please contact an admin." }));
@@ -32,10 +32,11 @@ module.exports = {
         "d.armAccuracyNotes as armAccuracyNotes, d.inField as inField, d.inFieldNotes as inFieldNotes, " +
         "d.outField as outField, d.outFieldNotes as outFieldNotes, d.baserunMechanics as baserunMechanics, " +
         "d.baserunMechanicsNotes as baserunMechanicsNotes, d.baserunSpeed as baserunSpeed, " +
-        "d.baserunSpeedNotes as baserunSpeedNotes, d.division as division, d.createdAt as createdAt, " +
-        "d.updatedAt as updatedAt FROM players a INNER JOIN (SELECT b.* FROM stats b WHERE b.coachId = UNHEX(?) " +
-        "AND b.createdAt = (SELECT c.createdAt FROM stats c WHERE c.playerId = b.playerId AND c.coachId = UNHEX(?) " +
-        "ORDER BY c.createdAt DESC LIMIT 1)) AS d ON a.id = d.playerId WHERE a.leagueId = UNHEX(?)"
+        "d.baserunSpeedNotes as baserunSpeedNotes, d.division as division, d.finished as finished, " +
+        "d.createdAt as createdAt, d.updatedAt as updatedAt FROM players a INNER JOIN (SELECT b.* FROM stats " +
+        "b WHERE b.coachId = UNHEX(?) AND b.createdAt = (SELECT c.createdAt FROM stats c WHERE c.playerId = " +
+        "b.playerId AND c.coachId = UNHEX(?) ORDER BY c.createdAt DESC LIMIT 1)) AS d ON a.id = d.playerId WHERE " +
+        "a.leagueId = UNHEX(?)"
       return connection.execute(query, [req.user.id, req.user.id, req.user.leagueId]);
     }).spread(data => res.status(200).json(data))
       .catch(error => res.status(400).json({ message: "Please contact an admin.", error: error }));
@@ -227,6 +228,14 @@ module.exports = {
       addedQuery = true;
       query += " division = ?";
       data.push(req.body.division);
+    }
+    if (req.body.finished && (req.body.finished == "true" || req.body.finished == 2)  ) {
+      if (addedQuery) {
+        query += ","
+      }
+      addedQuery = true;
+      query += " finished = ?";
+      data.push(1);
     }
     if (!addedQuery) {
       return res.status(400).json({ message: "Nothing was submitted. Please fillout a player stats field before submitting." });
