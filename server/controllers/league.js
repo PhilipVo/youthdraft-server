@@ -136,9 +136,10 @@ module.exports = {
           throw { status: 400, message: "Please wait for your account to be validated before trying to reset your password." };
         else if (error)
           throw { status: 400, message: "There is no such email associated with this league." };
-        data.password = password
-        return nodeMailer.resetLeaguePassword(data[0])
-      }).spread(email => {
+        data[0][0].password = password
+        console.log(data[0][0]);
+        return nodeMailer.resetLeaguePassword(data[0][0])
+      }).then(email => {
         nodeMailer.mailOptions.to = req.body.email
         nodeMailer.mailOptions.subject = "Your password has been reset"
         nodeMailer.mailOptions.html = email
