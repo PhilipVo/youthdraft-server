@@ -30,7 +30,7 @@ module.exports = {
       "d.date as tryoutDate, d.address as tryoutAddress, a.createdAt, a.updatedAt, HEX(a.leagueId) as leagueId, HEX(teamId) " +
       "as teamId FROM players as a LEFT JOIN tryouts d ON tryoutId = d.id WHERE a.leagueId = UNHEX(?)";
     if (req.user.leagueId) {
-      tempId = [req.user.id, req.user.leagueId, req.user.leagueId]
+      tempId = [req.user.id, req.user.leagueId]
       query = "SELECT HEX(c.id) as id, c.firstName as firstName, c.lastName as lastName, c.teamNumber as teamNumber, " +
         "c.birthday as birthday, c.leagueAge as leagueAge, c.phoneNumber as phoneNumber, c.email as email, " +
         "c.division as division, c.gender as gender, c.pitcher as pitcher, c.catcher as catcher, c.coachsKid as coachsKid, " +
