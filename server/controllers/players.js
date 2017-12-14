@@ -36,7 +36,7 @@ module.exports = {
         "c.division as division, c.gender as gender, c.pitcher as pitcher, c.catcher as catcher, c.coachsKid as coachsKid, " +
         "c.parentFirstName as parentFirstName, c.parentLastName as parentLastName, HEX(c.tryoutId) as tryoutId, " +
         "d.date as tryoutDate, d.address as tryoutAddress, c.createdAt as createdAt, c.updatedAt as updatedAt, " +
-        "HEX(c.leagueId) as leagueId, HEX(c.teamId) as teamId, b.name as teamName, b.division as division " +
+        "HEX(c.leagueId) as leagueId, HEX(c.teamId) as teamId, b.name as teamName, a.division as division " +
         "FROM coaches as a INNER JOIN players as c ON a.division = c.division LEFT JOIN teams as b ON c.teamId = b.id " +
         "LEFT JOIN tryouts d ON c.tryoutId = d.id WHERE a.id = UNHEX(?) AND c.leagueId = UNHEX(?)";
     }
