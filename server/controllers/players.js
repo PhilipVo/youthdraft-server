@@ -38,7 +38,7 @@ module.exports = {
         "d.date as tryoutDate, d.address as tryoutAddress, c.createdAt as createdAt, c.updatedAt as updatedAt, " +
         "HEX(c.leagueId) as leagueId, HEX(c.teamId) as teamId, b.name as teamName, b.division as division " +
         "FROM coaches as a INNER JOIN players as c ON a.division = c.division LEFT JOIN teams as b ON c.teamId = b.id " +
-        "LEFT JOIN tryouts d ON c.tryoutId = d.id WHERE a.id = UNHEX(?) AND b.leagueId = UNHEX(?) AND c.leagueId = UNHEX(?)";
+        "LEFT JOIN tryouts d ON c.tryoutId = d.id WHERE a.id = UNHEX(?) AND c.leagueId = UNHEX(?)";
     }
     Promise.using(getConnection(), connection => connection.execute(query, tempId))
       .spread(data => {
