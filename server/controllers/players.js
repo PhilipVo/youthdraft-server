@@ -11,10 +11,8 @@ module.exports = {
       const query = "SELECT HEX(a.id) as id, firstName, lastName, teamNumber, birthday, leagueAge, phoneNumber, email, " +
         "division, gender, pitcher, catcher, coachsKid, parentFirstName, parentLastName, HEX(tryoutId) as tryoutId, " +
         "d.date as tryoutDate, d.address as tryoutAddress, a.createdAt, a.updatedAt, HEX(a.leagueId) as leagueId, HEX(teamId) " +
-        "as teamId FROM players as a LEFT JOIN tryouts d ON tryoutId = d.id WHERE a.leagueId = UNHEX(?) AND (YEAR(NOW()) " +
-        "- YEAR(birthday)) <= (SELECT maxAge FROM youthdraft.divisions where type = ?) AND (YEAR(NOW()) - YEAR(birthday)) " +
-        ">= (SELECT minAge FROM youthdraft.divisions where type = ?)"
-      return connection.execute(query, [req.user.id, req.params.division, req.params.division]);
+        "as teamId FROM players as a LEFT JOIN tryouts d ON tryoutId = d.id WHERE a.leagueId = UNHEX(?) AND division = ?";
+        return connection.execute(query, [req.user.id, req.params.division]);
     }).spread(data => {
       for (let i = 0; i < data.length; i++) {
         data[i].pitcher = data[i].pitcher ? "true" : "false";
@@ -32,13 +30,14 @@ module.exports = {
       "d.date as tryoutDate, d.address as tryoutAddress, a.createdAt, a.updatedAt, HEX(a.leagueId) as leagueId, HEX(teamId) " +
       "as teamId FROM players as a LEFT JOIN tryouts d ON tryoutId = d.id WHERE a.leagueId = UNHEX(?)";
     if (req.user.leagueId) {
-      tempId = [req.user.id, req.user.id]
+      tempId = [req.user.id, req.user.id, req.user.id]
       query = `SELECT HEX(b.id) id, HEX(b.leagueId), b.firstName, b.lastName, b.teamNumber, b.birthday, b.leagueAge,
         b.phoneNumber, b.email, b.division, b.gender, b.pitcher, b.catcher, b.coachsKid, parentFirstName, parentLastName,
         HEX(tryoutId) tryoutId, c.date as tryoutDate, c.address as tryoutAddress, b.createdAt, b.updatedAt FROM players
         b LEFT JOIN tryouts c ON tryoutId = c.id WHERE (YEAR(NOW()) - YEAR(b.birthday)) <= (SELECT maxAge FROM divisions
         WHERE type = (SELECT division FROM coaches WHERE id = UNHEX(?) LIMIT 1)) AND (YEAR(NOW()) - YEAR(b.birthday))
-        >= (SELECT minAge FROM divisions WHERE type = (SELECT division FROM coaches WHERE id = UNHEX(?) LIMIT 1))`;
+        >= (SELECT minAge FROM divisions WHERE type = (SELECT division FROM coaches WHERE id = UNHEX(?) LIMIT 1))
+        AND (division = (SELECT division FROM coaches WHERE id = UNHEX(?)  LIMIT 1) OR division IS NULL)`;
     }
     Promise.using(getConnection(), connection => connection.execute(query, tempId))
       .spread(data => {
