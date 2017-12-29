@@ -15,7 +15,7 @@ const socket = require('./server/services/socket.js')(server);
 
 // CORS
 app.use(function (req, res, next) {
-    // Allowing multiple websites to connecy
+    // Allowing multiple websites to connect
     var allowedOrigins = ['http://localhost:4200', 'https://youthdraft.com', 'https://www.youthdraft.com'];
     var origin = req.headers.origin;
     if(allowedOrigins.indexOf(origin) > -1){

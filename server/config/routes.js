@@ -9,6 +9,7 @@ const 	league 					= require('../controllers/league.js'),
 				divisions				= require('../controllers/divisions.js'),
 				upload					= require('./multer.js'),
 				uploadOld				= require('../controllers/uploadOldData.js'),
+				contactUs				= require('../controllers/contact-us.js'),
 				uploadFields		= [{ name: 'teams', maxCount: 1 }, { name: 'coaches', maxCount: 1 }, { name: 'players', maxCount: 1 }];
 
 module.exports = function (app) {
@@ -95,5 +96,11 @@ module.exports = function (app) {
 	////////////////////////////////////////////////////////////
 
 	app.get('/divisions', divisions.getAll)
+
+	////////////////////////////////////////////////////////////
+	//                   Contact Us Routes                    //
+	////////////////////////////////////////////////////////////
+
+	app.post('/contact/send', contactUs.sendMessage)
 
 }

@@ -1,0 +1,7 @@
+INSERT INTO youthdraft.divisions (type, minAge, maxAge) VALUES ('8U', 8, 8), ('9U', 9, 9), ('10U', 10, 10),
+('11U', 11, 11), ('12U', 12, 12), ('13U', 13, 13), ('14U', 14, 14), ('15U', 15, 15), ('16U', 16, 16), ('17U', 17, 17),
+('18U', 18, 18), ('Senior', 13, 16), ('Junior', 12, 14), ('Intermediate', 11, 13), ('Majors', 10, 12), ('AAA', 9, 11),
+('AA', 8, 10), ('A', 6, 9), ('Teeball', 5, 6), ('Farm', 0, 5)
+ON DUPLICATE KEY UPDATE minAge = VALUES(minAge), maxAge = VALUES(maxAge);
+
+select * from divisions;
